@@ -34,10 +34,9 @@ chicago-case-study/
 │   ├── streamlit_app.py        entrypoint: theme, top navigation, API status badge
 │   ├── app_pages/              overview.py (start page) · communities.py · insights.py (dashboard) · admin.py (CRUD)
 │   │                           · system.py (API status)
-│   ├── lib/                    api.py (REST client) · filters.py (URL-synced filters) · charts.py (ECharts
-│   │                           chart registry) · cards.py (chart card) · export.py (PNG/ZIP via matplotlib)
-│   │                           · records.py (CRUD forms, API call log, error messages) · maps.py (pydeck maps)
-│   └── legacy/                 the previous single-file version, kept for reference
+│   └── lib/                    api.py (REST client) · filters.py (URL-synced filters) · charts.py (ECharts
+│                               chart registry) · cards.py (chart card) · export.py (PNG/ZIP via matplotlib)
+│                               · records.py (CRUD forms, API call log, error messages) · maps.py (pydeck maps)
 ├── usecases/
 │   ├── usecase1_load_clean.py  UC1 – load, clean, insert into the DB (runs the pipeline)
 │   ├── usecase2_eda.py         UC2 – exploratory analysis and charts

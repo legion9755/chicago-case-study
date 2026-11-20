@@ -15,7 +15,6 @@ Pages (app_pages/)
   System       backend health, endpoint list, ETL data-quality log
 
 Shared code lives in lib/ (API client, global filters, PNG/ZIP export).
-The previous single-file version is kept in legacy/streamlit_app_v1.py.
 """
 import streamlit as st
 

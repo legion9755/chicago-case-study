@@ -6,7 +6,6 @@ Run from the project folder:   python usecases/usecase1_load_clean.py
 Creates/refreshes db/chicago_crime.db (SQLite, written with SQLAlchemy 2).
 """
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from sqlalchemy import inspect, text
 from sqlalchemy.schema import CreateTable
