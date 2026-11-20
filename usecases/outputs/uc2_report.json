@@ -1,0 +1,84 @@
+{
+  "key": "uc2",
+  "title": "Use Case 2 — Exploratory Analysis & Visualization of Crime",
+  "sections": [
+    {
+      "id": "1",
+      "title": "Crime trend over years",
+      "question": "Plot total number of crimes per year. Visual interpretation: is the crime rate rising or decreasing?",
+      "output": "yearly = df.groupby('year').size()\n\nyear            2012  2013  2014  2015  2016\ncrimes             2     1     1     4   490\nmonths_covered     1     1     1     3     5\n(chart saved: usecases/outputs/uc2_1_crimes_per_year.png)\n\nLinear slope (np.polyfit): +97.9 crimes/year | 2016 share: 98.4% | complete years (12 months): 0\n\nINSIGHT: The chart looks like a sharp RISE (slope +98/year), but it is not a real trend: 2016 holds 98.4% of the data and no year has all 12 months. Earlier years only contain crimes reported late. The crime-rate trend cannot be determined from this extract.",
+      "figures": [
+        "usecases/outputs/uc2_1_crimes_per_year.png"
+      ],
+      "insight": "The chart looks like a sharp RISE (slope +98/year), but it is not a real trend: 2016 holds 98.4% of the data and no year has all 12 months. Earlier years only contain crimes reported late. The crime-rate trend cannot be determined from this extract."
+    },
+    {
+      "id": "2",
+      "title": "Crime distribution by category (Primary Type)",
+      "question": "Bar chart of top 10 crime categories (Primary Type). Calculate counts and percentage for each.",
+      "output": "df['primary_type'].value_counts()  and  value_counts(normalize=True) * 100\n\n                     count  percent\nprimary_type                       \nTHEFT                  105    21.08\nBATTERY                 85    17.07\nCRIMINAL DAMAGE         49     9.84\nOTHER OFFENSE           39     7.83\nDECEPTIVE PRACTICE      38     7.63\nASSAULT                 35     7.03\nNARCOTICS               32     6.43\nROBBERY                 30     6.02\nCRIMINAL TRESPASS       17     3.41\nMOTOR VEHICLE THEFT     16     3.21\n(chart saved: usecases/outputs/uc2_2_top10_categories.png)\n\nINSIGHT: Theft (21.08%) and Battery (17.07%) together are 38.1% of all crimes; the top 10 categories cover 89.5%.",
+      "figures": [
+        "usecases/outputs/uc2_2_top10_categories.png"
+      ],
+      "insight": "Theft (21.08%) and Battery (17.07%) together are 38.1% of all crimes; the top 10 categories cover 89.5%."
+    },
+    {
+      "id": "3",
+      "title": "Arrests and crime outcomes",
+      "question": "What percentage of crimes result in arrest?",
+      "output": "arrest_rate = df['arrest'].mean() * 100 = 24.90%   (124 arrests / 498 crimes)\n\nArrest rate by category (categories with >= 10 crimes):\n                     crimes  arrest_rate\nprimary_type                            \nNARCOTICS                32       100.00\nCRIMINAL TRESPASS        17        88.24\nASSAULT                  35        28.57\nBATTERY                  85        23.53\nOTHER OFFENSE            39        20.51\nROBBERY                  30        20.00\nDECEPTIVE PRACTICE       38        13.16\nTHEFT                   105         9.52\nCRIMINAL DAMAGE          49         4.08\nBURGLARY                 14         0.00\nMOTOR VEHICLE THEFT      16         0.00\n(chart saved: usecases/outputs/uc2_3_arrest_rate_by_category.png)\n\nINSIGHT: 24.9% of crimes result in an arrest. Narcotics (100%) and Criminal Trespass (88%) are almost always arrests because police discover them in the act; Theft (9.5%) and Motor Vehicle Theft (0%) are reported after the fact and rarely end in arrest.",
+      "figures": [
+        "usecases/outputs/uc2_3_arrest_rate_by_category.png"
+      ],
+      "insight": "24.9% of crimes result in an arrest. Narcotics (100%) and Criminal Trespass (88%) are almost always arrests because police discover them in the act; Theft (9.5%) and Motor Vehicle Theft (0%) are reported after the fact and rarely end in arrest."
+    },
+    {
+      "id": "4",
+      "title": "Heatmap of crime by Month and Day of Week",
+      "question": "Use Seaborn heatmap of crime frequency pivoted by Month vs DayOfWeek.",
+      "output": "pivot = df.pivot_table(index='month', columns='day_of_week', values='case_number', aggfunc='count')\n\nday_of_week  Monday  Tuesday  Wednesday  Thursday  Friday  Saturday  Sunday\nJan               1        1          1         2       3         0       2\nFeb               0        1          0         1       1         1       1\nMar               3        4          2         1       1         1       0\nApr               7        3          1         1       6         2       2\nMay               1      146        299         0       0         0       1\nJun               0        0          0         0       0         0       0\nJul               0        0          0         0       0         0       0\nAug               0        0          0         0       0         0       0\nSep               0        0          0         0       0         0       0\nOct               0        0          0         0       0         0       0\nNov               0        1          0         0       0         1       0\nDec               0        0          0         0       0         0       0\n(chart saved: usecases/outputs/uc2_4_heatmap_month_day.png)\n\nINSIGHT: The busiest cell is May / Wednesday (299 crimes = 60% of all). This is 4 May 2016, the date of the extract, so the heatmap reflects when the data was pulled rather than a weekly pattern.",
+      "figures": [
+        "usecases/outputs/uc2_4_heatmap_month_day.png"
+      ],
+      "insight": "The busiest cell is May / Wednesday (299 crimes = 60% of all). This is 4 May 2016, the date of the extract, so the heatmap reflects when the data was pulled rather than a weekly pattern."
+    },
+    {
+      "id": "5",
+      "title": "Top community areas",
+      "question": "List top 10 community areas with highest crime counts. Plot on a bar chart.",
+      "output": " community_code  community_name  crimes\n             25          Austin      34\n              8 Near North Side      20\n             23   Humboldt Park      20\n             30  South Lawndale      16\n             43     South Shore      16\n             68       Englewood      16\n             32            Loop      15\n              6       Lake View      14\n             49        Roseland      14\n             71  Auburn Gresham      14\n(chart saved: usecases/outputs/uc2_5_top10_communities.png)\n\nINSIGHT: Austin (34) leads by a wide margin, followed by Near North Side and Humboldt Park (20 each).",
+      "figures": [
+        "usecases/outputs/uc2_5_top10_communities.png"
+      ],
+      "insight": "Austin (34) leads by a wide margin, followed by Near North Side and Humboldt Park (20 each)."
+    },
+    {
+      "id": "Q1",
+      "title": "Which crime category is most frequent?",
+      "question": "Which crime category is most frequent?",
+      "output": "cat.index[0] = THEFT  ->  105 crimes (21.08%)\n\nINSIGHT: Theft is the most frequent category with 105 crimes (21.08%).",
+      "figures": [],
+      "insight": "Theft is the most frequent category with 105 crimes (21.08%)."
+    },
+    {
+      "id": "Q2",
+      "title": "Is the arrest rate consistent across different years?",
+      "question": "Is the arrest rate consistent across different years?",
+      "output": "      crimes  arrests    rate\nyear                         \n2012       2        2  100.00\n2013       1        1  100.00\n2014       1        0    0.00\n2015       4        2   50.00\n2016     490      119   24.29\n(chart saved: usecases/outputs/uc2_q2_arrest_rate_per_year.png)\n\nINSIGHT: Consistency cannot be judged: only 2016 (490 crimes, 24.3%) has enough data. 2012–2015 have 1–4 crimes each, so their rates (0–100%) are driven by chance, not by policing changes.",
+      "figures": [
+        "usecases/outputs/uc2_q2_arrest_rate_per_year.png"
+      ],
+      "insight": "Consistency cannot be judged: only 2016 (490 crimes, 24.3%) has enough data. 2012–2015 have 1–4 crimes each, so their rates (0–100%) are driven by chance, not by policing changes."
+    },
+    {
+      "id": "Q3",
+      "title": "Which month has the highest crime frequency?",
+      "question": "Which month has the highest crime frequency?",
+      "output": "        Jan  Feb  Mar  Apr  May  Jun  Jul  Aug  Sep  Oct  Nov  Dec\ncrimes   10    5   12   22  447    0    0    0    0    0    2    0\n(chart saved: usecases/outputs/uc2_q3_crimes_by_month.png)\n\nINSIGHT: May has the highest frequency (447 crimes, 89.8%), because the extract was taken in early May 2016; it does not show real seasonality.",
+      "figures": [
+        "usecases/outputs/uc2_q3_crimes_by_month.png"
+      ],
+      "insight": "May has the highest frequency (447 crimes, 89.8%), because the extract was taken in early May 2016; it does not show real seasonality."
+    }
+  ]
+}

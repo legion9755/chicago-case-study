@@ -1,0 +1,128 @@
+[browser]
+gatherUsageStats = false
+
+# Theme: dense dual-mode dashboard (light/dark toggle stays in the settings menu),
+# retinted to the project's navy brand colour.
+[theme]
+showWidgetBorder = true
+showSidebarBorder = true
+baseRadius = "8px"
+buttonRadius = "8px"
+font = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap"
+codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+baseFontSize = 14
+baseFontWeight = 400
+codeFontSize = "13px"
+headingFontSizes = ["28px", "20px", "17px", "15px", "14px", "12px"]
+headingFontWeights = [700, 600, 600, 600, 500, 500]
+metricValueFontWeight = 600
+linkUnderline = false
+paddingTop = "1rem"
+paddingBottom = "3rem"
+
+[theme.light]
+primaryColor = "#1F4E79"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F6F9"
+codeBackgroundColor = "#F1F5F9"
+textColor = "#0F172A"
+linkColor = "#1F4E79"
+borderColor = "#D9DEE5"
+codeTextColor = "#334155"
+greenColor = "#15803D"
+redColor = "#C2261C"
+yellowColor = "#B45309"
+orangeColor = "#C2410C"
+blueColor = "#1F4E79"
+violetColor = "#6D28D9"
+grayColor = "#64748B"
+chartCategoricalColors = [
+    "#1F4E79",
+    "#2E86C1",
+    "#15803D",
+    "#C2410C",
+    "#6D28D9",
+    "#C2261C",
+    "#64748B",
+    "#B45309",
+]
+chartSequentialColors = [
+    "#F0F6FB",
+    "#DCEAF6",
+    "#BCD6EE",
+    "#93BDE2",
+    "#66A1D3",
+    "#4285C2",
+    "#2E6BA8",
+    "#1F4E79",
+    "#173B5C",
+    "#0F2840",
+]
+dataframeBorderColor = "#D9DEE5"
+dataframeHeaderBackgroundColor = "#F4F6F9"
+dataframeHeaderTextColor = "#0F172A"
+
+[theme.dark]
+primaryColor = "#5B9BD5"
+backgroundColor = "#0E1520"
+secondaryBackgroundColor = "#17212F"
+codeBackgroundColor = "#17212F"
+textColor = "#E8EDF3"
+linkColor = "#8CBCE6"
+borderColor = "#2A3646"
+codeTextColor = "#CBD5E1"
+greenColor = "#4ADE80"
+redColor = "#F87171"
+yellowColor = "#FBBF24"
+orangeColor = "#FB923C"
+blueColor = "#5B9BD5"
+violetColor = "#A78BFA"
+grayColor = "#94A3B8"
+chartCategoricalColors = [
+    "#5B9BD5",
+    "#7DD3FC",
+    "#4ADE80",
+    "#FB923C",
+    "#A78BFA",
+    "#F87171",
+    "#94A3B8",
+    "#FBBF24",
+]
+chartSequentialColors = [
+    "#0F2840",
+    "#173B5C",
+    "#1F4E79",
+    "#2E6BA8",
+    "#4285C2",
+    "#66A1D3",
+    "#93BDE2",
+    "#BCD6EE",
+    "#DCEAF6",
+    "#F0F6FB",
+]
+dataframeBorderColor = "#2A3646"
+dataframeHeaderBackgroundColor = "#17212F"
+dataframeHeaderTextColor = "#E8EDF3"
+
+[theme.sidebar]
+paddingTop = "1rem"
+paddingBottom = "1.5rem"
+
+[theme.light.sidebar]
+backgroundColor = "#F7F9FB"
+secondaryBackgroundColor = "#EEF2F6"
+codeBackgroundColor = "#E2E8F0"
+textColor = "#0F172A"
+borderColor = "#D9DEE5"
+primaryColor = "#1F4E79"
+linkColor = "#1F4E79"
+
+[theme.dark.sidebar]
+backgroundColor = "#0A1018"
+secondaryBackgroundColor = "#17212F"
+codeBackgroundColor = "#17212F"
+textColor = "#E8EDF3"
+borderColor = "#2A3646"
+primaryColor = "#5B9BD5"
+linkColor = "#8CBCE6"

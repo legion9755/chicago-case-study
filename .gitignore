@@ -1,0 +1,18 @@
+# Python environment and caches
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local secrets and settings (never commit)
+.env
+.streamlit/secrets.toml
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Office lock files (e.g. while the Word report is open)
+~$*

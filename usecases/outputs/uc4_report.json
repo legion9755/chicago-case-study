@@ -1,0 +1,65 @@
+{
+  "key": "uc4",
+  "title": "Use Case 4 — Database Reporting & Integration",
+  "sections": [
+    {
+      "id": "1",
+      "title": "Design & populate summary tables (Python DB connector)",
+      "question": "Create tables and load the data through the Python database connector.",
+      "output": "cursor.execute(CREATE + INSERT ... SELECT)  ->  summary_crime_yearly       5 rows\ncursor.execute(CREATE + INSERT ... SELECT)  ->  summary_crime_category    23 rows\ncursor.execute(CREATE + INSERT ... SELECT)  ->  summary_community         70 rows\ncursor.executemany(INSERT ... VALUES (?, ?, ?))  ->  etl_run_log 3 rows\nconn.commit()\n\n year  total_crimes  total_arrests  arrest_rate_pct  domestic_crimes\n 2012             2              2           100.00                0\n 2013             1              1           100.00                0\n 2014             1              0             0.00                0\n 2015             4              2            50.00                1\n 2016           490            119            24.29               67\n\nINSIGHT: Three summary tables were created and filled with INSERT … SELECT so the database computes the aggregates itself; executemany with ? placeholders shows the safe way to insert Python data.",
+      "figures": [],
+      "insight": "Three summary tables were created and filled with INSERT … SELECT so the database computes the aggregates itself; executemany with ? placeholders shows the safe way to insert Python data."
+    },
+    {
+      "id": "2.1",
+      "title": "SQL: crime count per year",
+      "question": "Write SQL to compute crime count per year.",
+      "output": "SELECT year, COUNT(*) AS crime_count FROM chicago_crime GROUP BY year ORDER BY year\n\n year  crime_count\n 2012            2\n 2013            1\n 2014            1\n 2015            4\n 2016          490\n\nINSIGHT: 2016 has 490 of 498 crimes; 2012–2015 contain only a handful of late-reported cases.",
+      "figures": [],
+      "insight": "2016 has 490 of 498 crimes; 2012–2015 contain only a handful of late-reported cases."
+    },
+    {
+      "id": "2.2",
+      "title": "SQL: top 5 crime types and their percentages",
+      "question": "Write SQL to compute the top 5 crime types and their percentages.",
+      "output": "SELECT i.primary_type,\n       COUNT(*)                                           AS crime_count,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 2) AS pct_of_total\nFROM chicago_crime c\nJOIN iucr i ON i.iucr_code = c.iucr_code\nGROUP BY i.primary_type\nORDER BY crime_count DESC\nLIMIT 5\n\n      primary_type  crime_count  pct_of_total\n             THEFT          105         21.08\n           BATTERY           85         17.07\n   CRIMINAL DAMAGE           49          9.84\n     OTHER OFFENSE           39          7.83\nDECEPTIVE PRACTICE           38          7.63\n\nINSIGHT: The top 5 types make up 63.45% of all crimes. SUM(COUNT(*)) OVER () is a window function: it puts the grand total on every row, before LIMIT is applied.",
+      "figures": [],
+      "insight": "The top 5 types make up 63.45% of all crimes. SUM(COUNT(*)) OVER () is a window function: it puts the grand total on every row, before LIMIT is applied."
+    },
+    {
+      "id": "2.3",
+      "title": "SQL: arrest count per year",
+      "question": "Write SQL to compute arrest count per year.",
+      "output": "SELECT year, SUM(arrest) AS arrest_count, COUNT(*) AS crime_count,\n       ROUND(100.0 * AVG(arrest), 2) AS arrest_rate_pct\nFROM chicago_crime GROUP BY year ORDER BY year\n\n year  arrest_count  crime_count  arrest_rate_pct\n 2012             2            2           100.00\n 2013             1            1           100.00\n 2014             0            1             0.00\n 2015             2            4            50.00\n 2016           119          490            24.29\n\nINSIGHT: 2016 has 119 arrests from 490 crimes (24.29%). arrest is stored as 0/1, so SUM gives the count and AVG gives the rate.",
+      "figures": [],
+      "insight": "2016 has 119 arrests from 490 crimes (24.29%). arrest is stored as 0/1, so SUM gives the count and AVG gives the rate."
+    },
+    {
+      "id": "3",
+      "title": "Database stored views",
+      "question": "Create views vw_crime_yearly and vw_crime_by_category.",
+      "output": "CREATE VIEW vw_crime_yearly AS\nSELECT year, COUNT(*) AS total_crimes, SUM(arrest) AS total_arrests,\n       ROUND(100.0 * AVG(arrest), 2) AS arrest_rate_pct, SUM(domestic) AS domestic_crimes\nFROM chicago_crime GROUP BY year;\n\nCREATE VIEW vw_crime_by_category AS\nSELECT i.primary_type, COUNT(*) AS total_crimes,\n       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 2) AS pct_of_total,\n       SUM(c.arrest) AS total_arrests, ROUND(100.0 * AVG(c.arrest), 2) AS arrest_rate_pct\nFROM chicago_crime c JOIN iucr i ON i.iucr_code = c.iucr_code GROUP BY i.primary_type;\n\n                  name  type\n         chicago_crime table\n        city_community table\n      data_quality_log table\n      district_ps_info table\n           etl_run_log table\n                  iucr table\n      police_beat_info table\n     summary_community table\nsummary_crime_category table\n  summary_crime_yearly table\n           ward_office table\n  vw_crime_by_category  view\n       vw_crime_yearly  view\n\nINSIGHT: A view stores only the query, so it is always current; the summary tables store results and must be refreshed when the data changes.",
+      "figures": [],
+      "insight": "A view stores only the query, so it is always current; the summary tables store results and must be refreshed when the data changes."
+    },
+    {
+      "id": "4",
+      "title": "Pandas integration — read the views into DataFrames",
+      "question": "Read these views into Pandas DataFrames for further analysis: pd.read_sql(\"SELECT * FROM vw_crime_yearly\", conn)",
+      "output": "vy = pd.read_sql(\"SELECT * FROM vw_crime_yearly\", conn)\n\n year  total_crimes  total_arrests  arrest_rate_pct  domestic_crimes\n 2012             2              2           100.00                0\n 2013             1              1           100.00                0\n 2014             1              0             0.00                0\n 2015             4              2            50.00                1\n 2016           490            119            24.29               67\n\nvc = pd.read_sql(\"SELECT * FROM vw_crime_by_category\", conn)\n\n       primary_type  total_crimes  pct_of_total  total_arrests  arrest_rate_pct  share_of_all_arrests_%\n              THEFT           105         21.08             10             9.52                     8.1\n            BATTERY            85         17.07             20            23.53                    16.1\n    CRIMINAL DAMAGE            49          9.84              2             4.08                     1.6\n      OTHER OFFENSE            39          7.83              8            20.51                     6.5\n DECEPTIVE PRACTICE            38          7.63              5            13.16                     4.0\n            ASSAULT            35          7.03             10            28.57                     8.1\n          NARCOTICS            32          6.43             32           100.00                    25.8\n            ROBBERY            30          6.02              6            20.00                     4.8\n  CRIMINAL TRESPASS            17          3.41             15            88.24                    12.1\nMOTOR VEHICLE THEFT            16          3.21              0             0.00                     0.0\n\nINSIGHT: Further analysis in Pandas: Narcotics produces the most arrests (25.8% of all arrests) even though it is only 6.43% of crimes.",
+      "figures": [],
+      "insight": "Further analysis in Pandas: Narcotics produces the most arrests (25.8% of all arrests) even though it is only 6.43% of crimes."
+    },
+    {
+      "id": "5",
+      "title": "Visualization from database data",
+      "question": "Plot SQL-extracted data with Matplotlib and Seaborn.",
+      "output": "(chart saved: usecases/outputs/uc4_1_vw_crime_yearly.png)\n(chart saved: usecases/outputs/uc4_2_vw_crime_by_category.png)\nBoth charts are drawn only from data read out of the database views.\n\nINSIGHT: The most common crimes are not the ones that lead to arrests: Theft is 21% of crimes but has a 9.5% arrest rate, while Narcotics (6.4% of crimes) has a 100% arrest rate.",
+      "figures": [
+        "usecases/outputs/uc4_1_vw_crime_yearly.png",
+        "usecases/outputs/uc4_2_vw_crime_by_category.png"
+      ],
+      "insight": "The most common crimes are not the ones that lead to arrests: Theft is 21% of crimes but has a 9.5% arrest rate, while Narcotics (6.4% of crimes) has a 100% arrest rate."
+    }
+  ]
+}

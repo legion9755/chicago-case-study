@@ -1,0 +1,104 @@
+{
+  "key": "uc1",
+  "title": "Use Case 1 — Load and Clean Chicago Crime Data",
+  "sections": [
+    {
+      "id": "1.1",
+      "title": "Load the dataset (CSV) into a Pandas DataFrame — first 10 rows",
+      "question": "Load the dataset (CSV) into a Pandas DataFrame. Inspect the first 10 rows.",
+      "output": "  [Line with unclosed quote (truncated export)] rows affected: 2 -> quote closed on lines [498, 499]\nraw = pd.read_csv('chicago_crime_dataset.csv')   # with truncated-quote repair\n\n         id case_number      date                 block iucr_code                   location_desc  arrest  domestic  beat_num  district_code\n0  10508693    HZ250496  5/3/2016    013XX S SAWYER AVE       486                       APARTMENT    True      True      1022             10\n1  10508695    HZ250409  5/3/2016    061XX S DREXEL AVE       486                       RESIDENCE   False      True       313              3\n2  10508697    HZ250503  5/3/2016   053XX W CHICAGO AVE       470                          STREET   False     False      1524             15\n3  10508698    HZ250424  5/3/2016     049XX W FULTON ST       460                        SIDEWALK   False     False      1532             15\n4  10508699    HZ250455  5/3/2016     003XX N LOTUS AVE       820                       RESIDENCE   False      True      1523             15\n5  10508702    HZ250447  5/3/2016  082XX S MARYLAND AVE      041A                          STREET   False     False       631              6\n6  10508703    HZ250489  5/3/2016      027XX S STATE ST       460  CHA HALLWAY/STAIRWELL/ELEVATOR   False     False       133              1\n7  10508704    HZ250514  5/3/2016       002XX E 46TH ST       460         RESIDENCE PORCH/HALLWAY   False     False       215              2\n8  10508709    HZ250523  5/3/2016     014XX W DEVON AVE       460                        SIDEWALK   False     False      2432             24\n9  10508982    HZ250667  5/3/2016   069XX S ASHLAND AVE       486                          STREET   False      True       735              7\n\n   ward_no  community_code fbi_code  x_coordinate  y_coordinate  year date_of_update   latitude  longitude                       location\n0       24              29      08B     1154907.0     1893681.0  2016      5/10/2016  41.864073 -87.706819  (41.864073157, -87.706818608)\n1       20              42      08B     1183066.0     1864330.0  2016      5/10/2016  41.782922 -87.604363   (41.782921527, -87.60436317)\n2       37              25       24     1140789.0     1904819.0  2016      5/10/2016  41.894908 -87.758372  (41.894908283, -87.758371958)\n3       28              25      08B     1143223.0     1901475.0  2016      5/10/2016  41.885687 -87.749516  (41.885686845, -87.749515983)\n4       28              25        6     1139890.0     1901675.0  2016      5/10/2016  41.886297 -87.761751  (41.886297242, -87.761750709)\n5        8              44      04B     1183336.0     1850642.0  2016      5/10/2016  41.745354 -87.603799  (41.745354023, -87.603798903)\n6        3              35      08B     1176730.0     1886544.0  2016      5/10/2016  41.844024 -87.626923  (41.844023772, -87.626923253)\n7        3              38      08B     1178514.0     1874573.0  2016      5/10/2016  41.811134 -87.620741   (41.811133958, -87.62074077)\n8       40               1      08B     1165696.0     1942616.0  2016      5/10/2016  41.998131 -87.665814   (41.99813061, -87.665814038)\n9       17              67      08B     1166876.0     1858796.0  2016      5/10/2016  41.768097 -87.663879  (41.768096835, -87.663878589)",
+      "figures": [],
+      "insight": null
+    },
+    {
+      "id": "1.2",
+      "title": "Schema and data types",
+      "question": "Show schema and data types.",
+      "output": "<class 'pandas.DataFrame'>\nRangeIndex: 498 entries, 0 to 497\nData columns (total 20 columns):\n #   Column          Non-Null Count  Dtype  \n---  ------          --------------  -----  \n 0   id              498 non-null    int64  \n 1   case_number     498 non-null    str    \n 2   date            498 non-null    str    \n 3   block           498 non-null    str    \n 4   iucr_code       498 non-null    str    \n 5   location_desc   494 non-null    str    \n 6   arrest          498 non-null    bool   \n 7   domestic        498 non-null    bool   \n 8   beat_num        498 non-null    int64  \n 9   district_code   498 non-null    int64  \n 10  ward_no         498 non-null    int64  \n 11  community_code  498 non-null    int64  \n 12  fbi_code        498 non-null    str    \n 13  x_coordinate    469 non-null    float64\n 14  y_coordinate    469 non-null    float64\n 15  year            498 non-null    int64  \n 16  date_of_update  498 non-null    str    \n 17  latitude        469 non-null    float64\n 18  longitude       469 non-null    float64\n 19  location        469 non-null    str    \ndtypes: bool(2), float64(4), int64(6), str(8)\nmemory usage: 113.8 KB",
+      "figures": [],
+      "insight": null
+    },
+    {
+      "id": "1.3",
+      "title": "How many columns and rows are there?",
+      "question": "How many columns and rows are there?",
+      "output": "raw.shape = (498, 20)\nRows: 498   Columns: 20\n\nINSIGHT: The master file has 498 rows and 20 columns. The last 2 lines were truncated (unclosed quote) and had to be repaired before pandas could read the file.\n\nLookup files:\n  iucr        410 rows x  4 cols\n  community    77 rows x  7 cols\n  district     22 rows x 15 cols\n  ward         58 rows x 20 cols\n  beat        277 rows x  4 cols",
+      "figures": [],
+      "insight": "The master file has 498 rows and 20 columns. The last 2 lines were truncated (unclosed quote) and had to be repaired before pandas could read the file."
+    },
+    {
+      "id": "2.1",
+      "title": "Convert the Date column into datetime format",
+      "question": "Convert the Date column into datetime format.",
+      "output": "  [Exact duplicate rows] rows affected: 0 -> dropped\n  [Duplicate case_number (primary key)] rows affected: 0 -> kept the most recently updated record\n  [Missing case_number] rows affected: 0 -> dropped\n\nBefore: date dtype = str, example = '5/3/2016'\n  [Date formats found] rows affected: 1 -> %m/%d/%Y: 498\n  [Date in a different format from the rest] rows affected: 0 -> parsed with the matching format\n  [Date has no time of day (date only)] rows affected: 498 -> time = 00:00; hour-of-day analysis not possible\n  [Date missing / unparseable] rows affected: 0 -> dropped\n  [Crime date in the future] rows affected: 0 -> dropped\n  [date_of_update earlier than date] rows affected: 0 -> flagged only\n  [year column disagrees with date] rows affected: 0 -> year rebuilt from date\nAfter:  date dtype = datetime64[ns], example = 2016-05-03 00:00:00\nDate range: 01 Jan 2012 -> 04 May 2016\n\nINSIGHT: All 498 dates use one format (%m/%d/%Y) and converted cleanly, but they carry no time of day, so every timestamp is 00:00.",
+      "figures": [],
+      "insight": "All 498 dates use one format (%m/%d/%Y) and converted cleanly, but they carry no time of day, so every timestamp is 00:00."
+    },
+    {
+      "id": "2.2",
+      "title": "Identify and handle missing values for key fields",
+      "question": "Identify and handle missing values for key fields.",
+      "output": "  [location_desc distinct values before/after standardising] rows affected: 0 -> 47 -> 47 categories\n  [arrest missing / unrecognised] rows affected: 0 -> set to False\n  [domestic missing / unrecognised] rows affected: 0 -> set to False\n  [IUCR code not in lookup table] rows affected: 0 -> primary_type = 'UNKNOWN'\n  [Missing iucr_code] rows affected: 0 -> dropped\n  [Missing district_code] rows affected: 0 -> derived from beat_num\n  [Missing location_desc] rows affected: 4 -> filled with 'UNKNOWN'\n  [Missing ward_no] rows affected: 0 -> kept NULL (not guessed)\n  [Missing community_code] rows affected: 0 -> kept NULL (not guessed)\n  [Missing latitude/longitude] rows affected: 29 -> kept NULL (not guessed)\n\n                missing_before  missing_after\ncase_number                  0              0\ndate                         0              0\niucr_code                    0              0\nprimary_type                 0              0\narrest                       0              0\ndomestic                     0              0\nlocation_desc                4              0\nbeat_num                     0              0\ndistrict_code                0              0\nward_no                      0              0\ncommunity_code               0              0\nlatitude                    29             29\nlongitude                   29             29\n\nINSIGHT: Only location_desc (4 rows, filled with 'UNKNOWN') and the coordinates (29 rows, 5.8%, kept NULL rather than invented) had gaps; every key field needed for the analysis is complete.",
+      "figures": [],
+      "insight": "Only location_desc (4 rows, filled with 'UNKNOWN') and the coordinates (29 rows, 5.8%, kept NULL rather than invented) had gaps; every key field needed for the analysis is complete."
+    },
+    {
+      "id": "2.3",
+      "title": "Standardize categorical fields (strip whitespace, unify case)",
+      "question": "Standardize categorical fields (strip whitespace, unify case).",
+      "output": "Rule: s.str.strip().str.replace(r'\\s+', ' ').str.upper()   applied to block, location_desc, fbi_code, iucr_code\nIUCR codes padded to 4 characters with zfill(4):  '486' -> '0486'\n\nExample (raw -> clean):\nraw_iucr_code clean_iucr_code  raw_arrest  clean_arrest\n          486            0486        True          True\n          486            0486       False         False\n          470            0470       False         False\n          460            0460       False         False\n          820            0820       False         False\n\nlocation_desc categories: 47 raw -> 48 clean\n  [Longitude missing its minus sign] rows affected: 0 -> sign corrected\n  [Coordinates outside Chicago] rows affected: 0 -> set to NULL",
+      "figures": [],
+      "insight": null
+    },
+    {
+      "id": "3",
+      "title": "Generate new features: Year, Month, DayOfWeek from the Date field",
+      "question": "Extract Year, Month, and DayOfWeek from the Date field.",
+      "output": "df['year'] = df['date'].dt.year\ndf['month'] = df['date'].dt.month\ndf['day_of_week'] = df['date'].dt.day_name()\ndf['hour'] = df['date'].dt.hour\n\ncase_number       date  year  month day_of_week  hour\n   HZ250496 2016-05-03  2016      5     Tuesday     0\n   HZ250409 2016-05-03  2016      5     Tuesday     0\n   HZ250503 2016-05-03  2016      5     Tuesday     0\n   HZ250424 2016-05-03  2016      5     Tuesday     0\n   HZ250455 2016-05-03  2016      5     Tuesday     0\n   HZ250447 2016-05-03  2016      5     Tuesday     0\n   HZ250489 2016-05-03  2016      5     Tuesday     0\n   HZ250514 2016-05-03  2016      5     Tuesday     0",
+      "figures": [],
+      "insight": null
+    },
+    {
+      "id": "4",
+      "title": "Use NumPy: % missing per column; drop columns with > 50% missing",
+      "question": "Calculate the percentage of missing values per column. Can you drop any columns with > 50% missing?",
+      "output": "mask = df.isna().to_numpy()\nmissing_pct = np.mean(mask, axis=0) * 100\n\n                raw_missing_%  clean_missing_%\nlocation                5.823            5.823\ny_coordinate            5.823            5.823\nlongitude               5.823            5.823\nlatitude                5.823            5.823\nx_coordinate            5.823            5.823\nlocation_desc           0.803            0.000\ncase_number             0.000            0.000\nid                      0.000            0.000\nblock                   0.000            0.000\ndate                    0.000            0.000\narrest                  0.000            0.000\niucr_code               0.000            0.000\ncommunity_code          0.000            0.000\nward_no                 0.000            0.000\ndistrict_code           0.000            0.000\nbeat_num                0.000            0.000\ndomestic                0.000            0.000\nfbi_code                0.000            0.000\nyear                    0.000            0.000\ndate_of_update          0.000            0.000\n  [Columns with > 50% missing] rows affected: 0 -> none dropped\n(chart saved: usecases/outputs/uc1_missing_values.png)\n\nINSIGHT: No column exceeds 50% missing (maximum 5.82% for the coordinate columns), so no column is dropped. Key fields are also protected from automatic dropping.",
+      "figures": [
+        "usecases/outputs/uc1_missing_values.png"
+      ],
+      "insight": "No column exceeds 50% missing (maximum 5.82% for the coordinate columns), so no column is dropped. Key fields are also protected from automatic dropping."
+    },
+    {
+      "id": "5.1",
+      "title": "Design a crime table schema",
+      "question": "Design a crime table schema.",
+      "output": "  [Duplicate ward_no in ward offices file] rows affected: 8 -> kept the last (newest) record for wards [2, 6, 20, 27, 30, 31, 35, 45]\n  [Duplicate beat_num in police beat file] rows affected: 2 -> identical rows dropped\n  [IUCR codes added as placeholders] rows affected: 0 -> none needed\n  [Orphan foreign key beat_num] rows affected: 0 -> set to NULL\n  [Orphan foreign key district_code] rows affected: 0 -> set to NULL\n  [Orphan foreign key ward_no] rows affected: 0 -> set to NULL\n  [Orphan foreign key community_code] rows affected: 0 -> set to NULL\n\nStar schema: 1 fact table (chicago_crime) + 5 dimension tables, linked by foreign keys.\n\nCREATE TABLE chicago_crime (\n\tcase_number VARCHAR(12) NOT NULL, \n\tid INTEGER NOT NULL, \n\tdate DATETIME NOT NULL, \n\tblock VARCHAR(64), \n\tiucr_code VARCHAR(4) NOT NULL, \n\tlocation_desc VARCHAR(80), \n\tarrest BOOLEAN NOT NULL, \n\tdomestic BOOLEAN NOT NULL, \n\tbeat_num INTEGER, \n\tdistrict_code INTEGER, \n\tward_no INTEGER, \n\tcommunity_code INTEGER, \n\tfbi_code VARCHAR(4), \n\tx_coordinate FLOAT, \n\ty_coordinate FLOAT, \n\tyear INTEGER NOT NULL, \n\tmonth INTEGER NOT NULL, \n\tday_of_week VARCHAR(9) NOT NULL, \n\thour INTEGER NOT NULL, \n\tdate_of_update DATETIME, \n\tlatitude FLOAT, \n\tlongitude FLOAT, \n\tlocation VARCHAR(64), \n\tPRIMARY KEY (case_number), \n\tUNIQUE (id), \n\tFOREIGN KEY(iucr_code) REFERENCES iucr (iucr_code), \n\tFOREIGN KEY(beat_num) REFERENCES police_beat_info (beat_num), \n\tFOREIGN KEY(district_code) REFERENCES district_ps_info (district_code), \n\tFOREIGN KEY(ward_no) REFERENCES ward_office (ward_no), \n\tFOREIGN KEY(community_code) REFERENCES city_community (community_code)\n)",
+      "figures": [],
+      "insight": null
+    },
+    {
+      "id": "5.2",
+      "title": "Write the data with SQLAlchemy",
+      "question": "Use SQLAlchemy or PyMySQL to write data.",
+      "output": "Database: chicago_crime.db  (SQLite, SQLAlchemy 2)\n\ndf.to_sql(table, conn, if_exists='append')  -- dimension tables first, fact table last\n\n  iucr               loaded  410   rows in DB  410   OK\n  city_community     loaded   77   rows in DB   77   OK\n  district_ps_info   loaded   22   rows in DB   22   OK\n  ward_office        loaded   50   rows in DB   50   OK\n  police_beat_info   loaded  275   rows in DB  275   OK\n  chicago_crime      loaded  498   rows in DB  498   OK\n\nTables & views: ['chicago_crime', 'city_community', 'data_quality_log', 'district_ps_info', 'iucr', 'police_beat_info', 'ward_office', 'vw_crime_by_category', 'vw_crime_yearly']",
+      "figures": [],
+      "insight": null
+    },
+    {
+      "id": "Q1",
+      "title": "How many unique crime types exist in the dataset?",
+      "question": "How many unique crime types exist in the dataset?",
+      "output": "df['primary_type'].nunique() = 23\ndf['iucr_code'].nunique()    = 97  (detailed IUCR sub-codes)\n\nprimary_type\nTHEFT                               105\nBATTERY                              85\nCRIMINAL DAMAGE                      49\nOTHER OFFENSE                        39\nDECEPTIVE PRACTICE                   38\nASSAULT                              35\nNARCOTICS                            32\nROBBERY                              30\nCRIMINAL TRESPASS                    17\nMOTOR VEHICLE THEFT                  16\nBURGLARY                             14\nWEAPONS VIOLATION                     8\nPUBLIC PEACE VIOLATION                5\nOFFENSE INVOLVING CHILDREN            5\nCRIMINAL SEXUAL ASSAULT               4\nSEX OFFENSE                           3\nHOMICIDE                              3\nPROSTITUTION                          3\nKIDNAPPING                            2\nINTERFERENCE WITH PUBLIC OFFICER      2\nSTALKING                              1\nOBSCENITY                             1\nGAMBLING                              1\n\nINSIGHT: There are 23 unique crime types (primary_type), split into 97 detailed IUCR codes. Theft and Battery are the largest.",
+      "figures": [],
+      "insight": "There are 23 unique crime types (primary_type), split into 97 detailed IUCR codes. Theft and Battery are the largest."
+    },
+    {
+      "id": "Q2",
+      "title": "Are there anomalies in date formats or obvious outliers?",
+      "question": "Are there anomalies in date formats or obvious outliers?",
+      "output": "                                      check  rows_affected                                                                 action\nLine with unclosed quote (truncated export)              2                                       quote closed on lines [498, 499]\n                         Date formats found              1                                                          %m/%d/%Y: 498\n        Date has no time of day (date only)            498                        time = 00:00; hour-of-day analysis not possible\n                      Missing location_desc              4                                                  filled with 'UNKNOWN'\n                 Missing latitude/longitude             29                                                kept NULL (not guessed)\n     Duplicate ward_no in ward offices file              8 kept the last (newest) record for wards [2, 6, 20, 27, 30, 31, 35, 45]\n     Duplicate beat_num in police beat file              2                                                 identical rows dropped\n\nCrimes per year:\nyear\n2012      2\n2013      1\n2014      1\n2015      4\n2016    490\n\nBusiest dates:\ndate\n2016-05-04    298\n2016-05-03    145\n2016-04-01      4\n2015-01-01      2\n\nNumeric ranges:\n      latitude  longitude  beat_num  ward_no  community_code\nmin  41.653250 -87.839659     111.0      1.0             1.0\nmax  42.019399 -87.535758    2535.0     50.0            77.0\n\nINSIGHT: No date-format conflicts, future dates or out-of-Chicago coordinates were found. The real anomalies are: dates have no time of day; 89% of crimes fall on 3–4 May 2016 (the file is a snapshot of recently updated records, older dates are late reports); 2 truncated lines; 8 duplicate wards and 2 duplicate beats in the lookup files.",
+      "figures": [],
+      "insight": "No date-format conflicts, future dates or out-of-Chicago coordinates were found. The real anomalies are: dates have no time of day; 89% of crimes fall on 3–4 May 2016 (the file is a snapshot of recently updated records, older dates are late reports); 2 truncated lines; 8 duplicate wards and 2 duplicate beats in the lookup files."
+    }
+  ]
+}

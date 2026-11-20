@@ -1,0 +1,44 @@
+{
+  "key": "uc3",
+  "title": "Use Case 3 — Statistical Insights & Pattern Detection",
+  "sections": [
+    {
+      "id": "1",
+      "title": "Crime intensity by time (hourly distribution)",
+      "question": "Use Pandas groupby to get the hourly distribution and draw a line plot of crimes per hour of day.",
+      "output": "df['hour'] = df['date'].dt.hour\ncrimes_by_hour = df.groupby('hour').size()\n\nhour     0   1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  17  18  19  20  21  22  23\ncrimes  498   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0\n\nDoes the source contain a time of day? False\n(chart saved: usecases/outputs/uc3_1_crimes_per_hour.png)\n\nINSIGHT: All 498 crimes fall at hour 0 because the source dates have no time (e.g. 5/3/2016). The midnight spike is a data limitation, not a pattern; an hourly analysis needs timestamped data.",
+      "figures": [
+        "usecases/outputs/uc3_1_crimes_per_hour.png"
+      ],
+      "insight": "All 498 crimes fall at hour 0 because the source dates have no time (e.g. 5/3/2016). The midnight spike is a data limitation, not a pattern; an hourly analysis needs timestamped data."
+    },
+    {
+      "id": "2.1",
+      "title": "Mean crime per community area (NumPy)",
+      "question": "Use NumPy functions to compute mean crime per community area.",
+      "output": "arr = crimes per community area (all 77 areas, 0 if none)\n\n  areas                    77.00\n  np.mean                  6.47\n  np.median                5.00\n  np.std                   5.95\n  np.min                   0.00\n  np.max                   34.00\n  Q1 (np.percentile 25)    2.00\n  Q3 (np.percentile 75)    9.00\n\nINSIGHT: On average a community area has 6.47 crimes (median 5). Mean > median means the distribution is right-skewed: a few areas carry much more crime.",
+      "figures": [],
+      "insight": "On average a community area has 6.47 crimes (median 5). Mean > median means the distribution is right-skewed: a few areas carry much more crime."
+    },
+    {
+      "id": "2.2",
+      "title": "Outlier community areas — box plot + IQR method",
+      "question": "Identify which areas are extreme outliers in terms of crime counts (box plot, then IQR method to list them).",
+      "output": "Q1 = 2.0   Q3 = 9.0   IQR = Q3 - Q1 = 7.0\nLower fence = Q1 - 1.5*IQR = -8.5   Upper fence = Q3 + 1.5*IQR = 19.5\n\n community_code  community_name  population  crimes  times_median\n             25          Austin       98882      34           6.8\n              8 Near North Side      104712      20           4.0\n             23   Humboldt Park       55598      20           4.0\n(chart saved: usecases/outputs/uc3_2_community_outliers.png)\n\nINSIGHT: 3 areas exceed the upper fence of 19.5: Austin (34), Near North Side (20), Humboldt Park (20). Austin has 6.8x the median area. No low outliers are possible because the lower fence is negative.",
+      "figures": [
+        "usecases/outputs/uc3_2_community_outliers.png"
+      ],
+      "insight": "3 areas exceed the upper fence of 19.5: Austin (34), Near North Side (20), Humboldt Park (20). Austin has 6.8x the median area. No low outliers are possible because the lower fence is negative."
+    },
+    {
+      "id": "3",
+      "title": "Crime cross-correlation",
+      "question": "Use Pandas .corr() on numeric features (Year, Month, Arrest, etc.) and visualise the matrix with a heatmap.",
+      "output": "Constant columns dropped (correlation undefined): ['hour']\n\n                year  month  day_of_week  arrest  domestic  district_code  ward_no  community_code  latitude  longitude\nyear            1.00   0.15        -0.31   -0.13      0.02          -0.13    -0.06            0.09     -0.04       0.05\nmonth           0.15   1.00        -0.26   -0.18      0.03          -0.10    -0.05            0.01     -0.11       0.00\nday_of_week    -0.31  -0.26         1.00    0.19      0.00           0.05     0.01           -0.01     -0.06      -0.04\narrest         -0.13  -0.18         0.19    1.00      0.01           0.02     0.03           -0.06     -0.01      -0.03\ndomestic        0.02   0.03         0.00    0.01      1.00          -0.01    -0.00            0.01      0.01      -0.03\ndistrict_code  -0.13  -0.10         0.05    0.02     -0.01           1.00     0.72           -0.47      0.64      -0.56\nward_no        -0.06  -0.05         0.01    0.03     -0.00           0.72     1.00           -0.55      0.70      -0.48\ncommunity_code  0.09   0.01        -0.01   -0.06      0.01          -0.47    -0.55            1.00     -0.74       0.29\nlatitude       -0.04  -0.11        -0.06   -0.01      0.01           0.64     0.70           -0.74      1.00      -0.56\nlongitude       0.05   0.00        -0.04   -0.03     -0.03          -0.56    -0.48            0.29     -0.56       1.00\n(chart saved: usecases/outputs/uc3_3_correlation_heatmap.png)\n\nStrongest pairs:\ncommunity_code  latitude   -0.735\ndistrict_code   ward_no     0.721\nward_no         latitude    0.697\ndistrict_code   latitude    0.638\n\nINSIGHT: The strongest correlations (community vs latitude -0.74, district vs ward 0.72) only show that location codes describe the same place. Crime outcomes barely correlate with anything: arrest vs domestic 0.01, arrest vs year -0.13.",
+      "figures": [
+        "usecases/outputs/uc3_3_correlation_heatmap.png"
+      ],
+      "insight": "The strongest correlations (community vs latitude -0.74, district vs ward 0.72) only show that location codes describe the same place. Crime outcomes barely correlate with anything: arrest vs domestic 0.01, arrest vs year -0.13."
+    }
+  ]
+}
