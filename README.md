@@ -10,14 +10,16 @@
 | Automated tests (API, CRUD, frontend logic, every page) | `tests/` |
 | `.py` file for every use case | `usecases/usecase1_load_clean.py` … `usecase4_reporting.py` |
 | Database file | `db/chicago_crime.db` |
-| Word document (app screenshots, questions, outputs, insights) | `docs/Chicago_Crime_Case_Study_Report.docx` |
+| Word document (app screenshots, questions, outputs, insights) | `docs/Chicago_Crime_Case_Study_Report.docx` (its app screenshots show the earlier single-page interface) |
+
+Source: https://github.com/legion9755/chicago-case-study
 
 ---
 
 ## 1. Project structure
 
 ```
-chicago_case_study/
+chicago-case-study/
 ├── data/                       6 source CSV files
 ├── db/chicago_crime.db         SQLite database (created by the pipeline)
 ├── pipeline/etl.py             Extract → Transform → Load
@@ -46,13 +48,15 @@ chicago_case_study/
 ├── tests/                      unittest suite: API + CRUD, frontend logic + exports, every page (AppTest)
 ├── docs/                       Word report
 ├── .streamlit/config.toml      Streamlit settings: light/dark brand theme, telemetry off
-└── requirements.txt
+├── .gitignore                  keeps venv/, caches and local secrets out of git
+└── requirements.txt            Python ≥ 3.10; Streamlit ≥ 1.67
 ```
 
 ## 2. Setup (Windows)
 
 ```powershell
-cd chicago_case_study
+git clone https://github.com/legion9755/chicago-case-study.git
+cd chicago-case-study
 python -m venv venv
 venv\Scripts\activate              # PowerShell: .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -141,7 +145,8 @@ Overview, Communities and Insights, and are kept in the URL.
   crime, hotspot community area, busiest day, arrest gap), a map of where crimes happen
   (Points by default, green = arrest made; switch to Heatmap above the map),
   the crime mix and the top community areas. With filters active, the rates show the
-  difference from all data. Each card links to the matching charts, keeping the filters.
+  difference from all data. The cards link onward, keeping the filters: *Hotspot* opens that
+  community area's page, the others open the matching charts on Insights.
 * **Communities:** all 77 community areas ranked by crimes, with crimes per 1,000 residents,
   arrest rate and the most common crime, next to a bubble map. Select a row (or use *Jump to a
   community area*) to open an area: its KPIs compared with the city, top crime types, crimes by

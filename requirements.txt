@@ -2,8 +2,11 @@ flask>=3.0
 SQLAlchemy>=2.0
 pandas>=2.0
 numpy>=1.24
-matplotlib>=3.7
+# <3.13: seaborn's box plot (used by the PNG export) relies on an argument matplotlib 3.13 removes
+matplotlib>=3.7,<3.13
 seaborn>=0.13
-streamlit>=1.45
+# the frontend uses st.navigation, st.echarts_chart, bind="query-params", st.menu_button, st.skeleton …
+streamlit>=1.67
+pydeck>=0.9
 requests>=2.31
 pillow>=10.0
