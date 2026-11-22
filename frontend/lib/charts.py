@@ -212,31 +212,6 @@ def communities_rate(r: dict, p: Palette) -> tuple[Option, pd.DataFrame]:
                  ["crimes", "population"]), d
 
 
-def crime_mix(r: dict, p: Palette, total: int) -> tuple[Option, pd.DataFrame]:
-    """Donut of the top categories plus "Other" (Overview page).
-
-    `r` is a /categories response; `total` is the number of crimes under the same filters.
-    """
-    d = pd.DataFrame(r["data"])[["primary_type", "crimes", "percent"]]
-    d["primary_type"] = d["primary_type"].str.title()
-    other = int(total - d["crimes"].sum())
-    if other > 0:
-        d = pd.concat([d, pd.DataFrame([{"primary_type": "Other", "crimes": other,
-                                         "percent": round(other / total * 100, 2)}])], ignore_index=True)
-    option = {
-        "dataset": {"source": d},
-        "tooltip": {"trigger": "item"},
-        "legend": {"orient": "vertical", "right": 0, "top": "middle"},
-        "series": [{
-            "type": "pie", "name": "Crimes", "radius": ["48%", "74%"], "center": ["34%", "50%"],
-            "avoidLabelOverlap": True, "itemStyle": {"borderWidth": 2, "borderColor": "transparent"},
-            "label": {"show": True, "formatter": "{@percent}%"},
-            "encode": {"itemName": "primary_type", "value": "crimes", "tooltip": ["crimes", "percent"]},
-        }],
-    }
-    return option, d
-
-
 # ---- Use Case 3 ------------------------------------------------------------
 def by_hour(r: dict, p: Palette) -> tuple[Option, pd.DataFrame]:
     d = pd.DataFrame(r["data"])

@@ -6,8 +6,8 @@
 |---|---|
 | Data pipeline that loads the data into the dimension tables | `pipeline/etl.py` (also driven step by step by Use Case 1) |
 | CRUD (GET, POST, PUT, PATCH, DELETE) for any dimension table | `backend/crud.py`, the Streamlit **Data admin** page |
-| Dashboard with exportable images and insights | `backend/analytics.py`, the Streamlit **Overview**, **Communities** and **Insights** pages |
-| Automated tests (API, CRUD, frontend logic, every page) | `tests/` |
+| Dashboard with exportable images and insights | `backend/analytics.py`, the Streamlit **Insights** page |
+| Automated tests (API, CRUD, frontend logic, both pages) | `tests/` |
 | `.py` file for every use case | `usecases/usecase1_load_clean.py` … `usecase4_reporting.py` |
 | Database file | `db/chicago_crime.db` |
 | Word document (app screenshots, questions, outputs, insights) | `docs/Chicago_Crime_Case_Study_Report.docx` (its app screenshots show the earlier single-page interface) |
@@ -32,11 +32,10 @@ chicago-case-study/
 ├── run_backend.py              starts the Flask API (port 5000)
 ├── frontend/                   Streamlit UI (port 8501)
 │   ├── streamlit_app.py        entrypoint: theme, top navigation, API status badge
-│   ├── app_pages/              overview.py (start page) · communities.py · insights.py (dashboard) · admin.py (CRUD)
-│   │                           · system.py (API status)
+│   ├── app_pages/              insights.py (dashboard, start page) · admin.py (CRUD)
 │   └── lib/                    api.py (REST client) · filters.py (URL-synced filters) · charts.py (ECharts
 │                               chart registry) · cards.py (chart card) · export.py (PNG/ZIP via matplotlib)
-│                               · records.py (CRUD forms, API call log, error messages) · maps.py (pydeck maps)
+│                               · records.py (CRUD forms, API call log, error messages)
 ├── usecases/
 │   ├── usecase1_load_clean.py  UC1 – load, clean, insert into the DB (runs the pipeline)
 │   ├── usecase2_eda.py         UC2 – exploratory analysis and charts
@@ -44,7 +43,7 @@ chicago-case-study/
 │   ├── usecase4_reporting.py   UC4 – summary tables, SQL queries, views, pd.read_sql, charts
 │   ├── common.py               shared helpers (records output for the report)
 │   └── outputs/                charts (.png) and recorded outputs (.json)
-├── tests/                      unittest suite: API + CRUD, frontend logic + exports, every page (AppTest)
+├── tests/                      unittest suite: API + CRUD, frontend logic + exports, both pages (AppTest)
 ├── docs/                       Word report
 ├── .streamlit/config.toml      Streamlit settings: light/dark brand theme, telemetry off
 ├── .gitignore                  keeps venv/, caches and local secrets out of git
@@ -98,9 +97,9 @@ free port, so it never changes the real database and can run while the app is ru
 |---|---|
 | `tests/test_backend.py` | every analytics endpoint, filters (incl. bad values → 400), no-match → 404, CRUD round trip (POST / duplicate 409 / PATCH / PUT / DELETE), validation errors, protected delete (409) |
 | `tests/test_logic.py` | error-message helpers, PATCH change detection, every chart builder, PNG export, ZIP of all 13 charts |
-| `tests/test_pages.py` | every page renders without errors; filters change the KPIs; empty states; Insights sections; Communities directory, detail and back button; Data admin table switch |
+| `tests/test_pages.py` | both pages render without errors; filters change the KPIs; empty state; Insights sections; Data admin table switch |
 
-Clicking table rows, map points and buttons inside dialogs can't be automated with AppTest;
+Clicking table rows and buttons inside dialogs can't be automated with AppTest;
 check those by hand in a browser. AppTest prints "missing ScriptRunContext … bare mode" lines;
 they are harmless.
 
@@ -117,10 +116,8 @@ Resources: `communities` (city_community), `districts`, `wards`, `beats`, `iucr`
 | PUT | `/api/<resource>/<id>` | replace the whole record | 200, 400, 404 |
 | PATCH | `/api/<resource>/<id>` | change some fields | 200, 400, 404 |
 | DELETE | `/api/<resource>/<id>` | delete (409 if crimes still reference it) | 200, 404, 409 |
-| GET | `/api/analytics/<name>` | dashboard data + insight (summary, crimes-by-year, categories, arrest-rate-by-category, arrest-rate-by-year, heatmap, crimes-by-month, crimes-by-hour, top-communities, community-outliers, correlation, data-quality) | 200, 404 |
+| GET | `/api/analytics/<name>` | dashboard data + insight (filters, summary, crimes-by-year, categories, arrest-rate-by-category, arrest-rate-by-year, heatmap, crimes-by-month, crimes-by-hour, top-communities, community-outliers, correlation) | 200, 404 |
 | GET | `/api/analytics/views/<view>` | `vw_crime_yearly`, `vw_crime_by_category` | 200, 404 |
-| GET | `/api/analytics/incidents?limit=` | individual crimes with coordinates, newest first (default 5000, max 50000) | 200, 404 |
-| GET | `/api/analytics/communities` | all 77 community areas: crimes, rates, ranks, top crime type + city-wide values | 200 |
 
 Analytics filters: `?year_from=2016&year_to=2016&crime_type=THEFT&crime_type=BATTERY&community=25&arrest=true&domestic=false`
 (`arrest` / `domestic` accept `true` or `false`; anything else answers 400.)
@@ -138,21 +135,9 @@ Invoke-RestMethod -Method Delete http://127.0.0.1:5000/api/communities/78
 Pages are in the top navigation bar. Light/dark mode is in the ⋮ menu → Settings.
 
 The sidebar filters (year, crime type, community area, arrest made, domestic) apply to
-Overview, Communities and Insights, and are kept in the URL.
+Insights and are kept in the URL.
 
-* **Overview** (start page): headline KPIs with sparklines, four highlight cards (most common
-  crime, hotspot community area, busiest day, arrest gap), a map of where crimes happen
-  (Points by default, green = arrest made; switch to Heatmap above the map),
-  the crime mix and the top community areas. With filters active, the rates show the
-  difference from all data. The cards link onward, keeping the filters: *Hotspot* opens that
-  community area's page, the others open the matching charts on Insights.
-* **Communities:** all 77 community areas ranked by crimes, with crimes per 1,000 residents,
-  arrest rate and the most common crime, next to a bubble map. Select a row (or use *Jump to a
-  community area*) to open an area: its KPIs compared with the city, top crime types, crimes by
-  month, a map of its incidents (green = arrest made) and the incident list. The open area is
-  kept in the URL (`?area=Austin`). The community-area filter doesn't apply on this page.
-  Map tiles come from Carto and need an internet connection.
-* **Insights:** use the sidebar filters, and pick a section
+* **Insights** (start page): use the sidebar filters, and pick a section
   (Exploratory analysis · Statistical insights · SQL views) above the charts. Filters and the
   section are saved in the URL, so a view can be shared as a link. Charts are interactive
   (hover for values) and each shows an insight computed by the backend.
@@ -168,7 +153,6 @@ Overview, Communities and Insights, and are kept in the URL.
   * **Delete** asks for confirmation (`DELETE`). Records still used by crimes are refused by
     the API (409) and the reason is shown.
   * **Developer view** (top right) shows the raw HTTP request and response of the last action.
-* **System:** backend health, the list of endpoints and the ETL data-quality log.
 
 ## 6. Notes on the data
 
@@ -187,7 +171,6 @@ Overview, Communities and Insights, and are kept in the URL.
 | Streamlit says it cannot reach the Flask API / sidebar badge says **API offline** | start `python run_backend.py` in another terminal (venv active) |
 | A page says *"The backend … doesn't have this endpoint yet"* | the backend is running older code: Ctrl+C it, run `python run_backend.py` again, reload the page |
 | `ImportError: cannot import name …` from `lib.…`, or a change doesn't show up | Streamlit is running older `frontend/lib/` code: Ctrl+C it and run `streamlit run frontend\streamlit_app.py` again |
-| Maps are blank (no streets) | the map tiles come from Carto and need an internet connection |
 | `Database not found` | run `python usecases\usecase1_load_clean.py` first |
 | `ModuleNotFoundError` | activate the venv and `pip install -r requirements.txt` |
 | Port 5000 busy | PowerShell: `$env:API_PORT="5001"` before `run_backend.py`, and `$env:API_URL="http://127.0.0.1:5001/api"` before Streamlit (cmd: `set API_PORT=5001` / `set API_URL=…`) |

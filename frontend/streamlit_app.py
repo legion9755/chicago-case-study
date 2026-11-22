@@ -7,12 +7,9 @@ Flask REST API (backend). Start the backend first, then:
     streamlit run frontend/streamlit_app.py
 
 Pages (app_pages/)
-  Overview     landing page: KPIs, highlights, mini map, crime mix, top community areas
-  Communities  directory of the 77 community areas, and a detail view per area
-  Insights     charts for Use Cases 2, 3 and 4 with insights; each chart exports as PNG
+  Insights     dashboard: charts for Use Cases 2, 3 and 4 with insights; each chart exports as PNG
                (chart + insight in one image), or download everything as a ZIP
   Data admin   GET / POST / PUT / PATCH / DELETE on any dimension table
-  System       backend health, endpoint list, ETL data-quality log
 
 Shared code lives in lib/ (API client, global filters, PNG/ZIP export).
 """
@@ -25,17 +22,7 @@ st.set_page_config(page_title="Chicago Crime Analytics", page_icon=":material/lo
 page = st.navigation(
     [
         st.Page(
-            "app_pages/overview.py", title="Overview", icon=":material/dashboard:", default=True,
-            help="Chicago crime at a glance: headline numbers, highlights, the crime mix and the busiest "
-                 "community areas. Uses the sidebar filters.",
-        ),
-        st.Page(
-            "app_pages/communities.py", title="Communities", icon=":material/location_city:",
-            help="All 77 community areas ranked by crimes and crimes per resident, with a detail view per "
-                 "area. Uses the sidebar filters (except community area).",
-        ),
-        st.Page(
-            "app_pages/insights.py", title="Insights", icon=":material/insights:",
+            "app_pages/insights.py", title="Insights", icon=":material/insights:", default=True,
             help="Charts and insights for Use Cases 2–4. Filter in the sidebar; export any chart, "
                  "or all of them, as PNG with its insight.",
         ),
@@ -43,10 +30,6 @@ page = st.navigation(
             "app_pages/admin.py", title="Data admin", icon=":material/table_edit:",
             help="Create, read, update and delete records in the dimension tables through the REST API, "
                  "with the raw request and response shown.",
-        ),
-        st.Page(
-            "app_pages/system.py", title="System", icon=":material/monitor_heart:",
-            help="Backend health, the API endpoint list, and the ETL data-quality log.",
         ),
     ],
     position="top",

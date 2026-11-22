@@ -11,7 +11,7 @@ client = _support.app.test_client()
 
 ANALYTICS = ["summary", "crimes-by-year", "categories", "arrest-rate-by-category", "arrest-rate-by-year",
              "heatmap", "crimes-by-month", "crimes-by-hour", "top-communities", "community-outliers",
-             "correlation", "incidents", "communities", "data-quality", "filters",
+             "correlation", "filters",
              "views/vw_crime_yearly", "views/vw_crime_by_category"]
 
 
@@ -46,22 +46,6 @@ class Analytics(unittest.TestCase):
         r = client.get("/api/analytics/summary?crime_type=HOMICIDE&community=32")
         self.assertEqual(r.status_code, 404)
         self.assertIn("match", r.json["detail"])
-
-    def test_communities_lists_all_areas(self):
-        body = client.get("/api/analytics/communities").json
-        self.assertEqual(len(body["data"]), 77)
-        self.assertEqual(sum(a["crimes"] for a in body["data"]), body["city"]["crimes"])
-        self.assertEqual(body["data"][0]["community_name"], "Austin")
-        # never 404, even when nothing matches
-        empty = client.get("/api/analytics/communities?crime_type=HOMICIDE&year_from=2012&year_to=2012")
-        self.assertEqual(empty.status_code, 200)
-        self.assertEqual(empty.json["city"]["crimes"], 0)
-
-    def test_incidents(self):
-        body = client.get("/api/analytics/incidents").json
-        self.assertEqual(body["total"], 498)
-        self.assertEqual(body["mapped"], 469)
-        self.assertEqual(client.get("/api/analytics/incidents?limit=10").json["returned"], 10)
 
     def test_unknown_view_is_404(self):
         self.assertEqual(client.get("/api/analytics/views/nope").status_code, 404)
