@@ -17,21 +17,6 @@ KEY_ARREST = "arrest"
 KEY_DOMESTIC = "domestic"
 FLAG_OPTIONS = ["Any", "Yes", "No"]
 FLAG_PARAM = {"Yes": "true", "No": "false"}   # "Any" sends nothing
-ACTIVE_COUNT = "filters_active"     # number of active filters, set by render_filters()
-
-
-def active_filters() -> int:
-    return st.session_state.get(ACTIVE_COUNT, 0)
-
-
-def link_params(**extra: str) -> dict[str, list[str]]:
-    """Query params for st.page_link: the current URL (filters) plus `extra`.
-
-    st.page_link clears every query param unless they are passed, which would drop the filters.
-    """
-    qp = {k: st.query_params.get_all(k) for k in st.query_params}
-    qp.update({k: [v] for k, v in extra.items()})
-    return qp
 
 
 def require_summary(params: dict[str, Any]) -> dict[str, Any]:
@@ -57,12 +42,10 @@ def _reset() -> None:
         st.session_state.pop(key, None)
 
 
-def render_filters(include_community: bool = True) -> dict[str, Any]:
+def render_filters() -> dict[str, Any]:
     """Draw the filter panel in the sidebar and return the API query params.
 
-    With include_community=False the community-area filter is hidden and not applied (its value
-    stays in the URL for the other pages). Stops the page with an error box if the filter
-    options can't be loaded.
+    Stops the page with an error box if the filter options can't be loaded.
     """
     status, opts = get("/analytics/filters")
     if status != 200:
@@ -90,14 +73,10 @@ def render_filters(include_community: bool = True) -> dict[str, Any]:
             "Crime type", opts["crime_types"], placeholder="All crime types",
             key=KEY_TYPES, bind="query-params",
         )
-        comms: list[str] = []
-        if include_community:
-            comms = st.multiselect(
-                "Community area", list(comm_map), placeholder="All community areas",
-                key=KEY_COMMS, bind="query-params",
-            )
-        else:
-            st.caption(":material/info: The community-area filter doesn't apply on this page.")
+        comms: list[str] = st.multiselect(
+            "Community area", list(comm_map), placeholder="All community areas",
+            key=KEY_COMMS, bind="query-params",
+        )
 
         arrest = st.segmented_control(
             "Arrest made", FLAG_OPTIONS, default="Any", required=True, key=KEY_ARREST, bind="query-params")
@@ -106,7 +85,6 @@ def render_filters(include_community: bool = True) -> dict[str, Any]:
 
         active = (int((yf, yt) != (years[0], years[-1])) + int(bool(types)) + int(bool(comms))
                   + int(arrest in FLAG_PARAM) + int(domestic in FLAG_PARAM))
-        st.session_state[ACTIVE_COUNT] = active
         if active:
             active_slot.badge(f"{active} active", color="primary")
         st.button(

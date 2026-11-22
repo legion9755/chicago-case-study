@@ -31,7 +31,7 @@ def create_app():
                 "CRUD": {r: f"GET|POST /api/{r}   GET|PUT|PATCH|DELETE /api/{r}/<id>" for r in DIMENSIONS},
                 "analytics": "GET /api/analytics/<summary|crimes-by-year|categories|arrest-rate-by-category|"
                              "arrest-rate-by-year|heatmap|crimes-by-month|crimes-by-hour|top-communities|"
-                             "community-outliers|correlation|incidents|communities|data-quality>",
+                             "community-outliers|correlation|filters>",
                 "filters": "?year_from=&year_to=&crime_type=&community=&arrest=true|false&domestic=true|false",
                 "views": "GET /api/analytics/views/<vw_crime_yearly|vw_crime_by_category>",
             },

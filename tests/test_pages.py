@@ -1,6 +1,6 @@
 """
-Page tests with Streamlit's AppTest: every page renders, filters change the numbers, links and
-empty states work. (Clicking table rows, map points and dialog buttons needs a real browser.)
+Page tests with Streamlit's AppTest: every page renders, filters change the numbers and
+empty states work. (Clicking table rows and dialog buttons needs a real browser.)
 
     python -m unittest discover -s tests -v
 """
@@ -27,17 +27,14 @@ class Pages(unittest.TestCase):
         self.assertFalse(at.exception, at.exception)
         return at
 
-    # ---- Overview ------------------------------------------------------------
-    def test_overview(self):
+    # ---- Insights (start page) ----------------------------------------------
+    def test_insights(self):
         at = self.open()
         self.assertEqual(metric(at, "Crimes"), "498")
-        self.assertEqual(metric(at, "Community areas"), "70 of 77")
-        self.assertEqual(len(at.get("echarts_chart")), 2)
-        self.assertEqual(len(at.get("deck_gl_json_chart")), 1)
-        self.assertEqual(at.get_by_key("overview_map").value, "Points")     # map opens on Points
+        self.assertEqual(len(at.get("echarts_chart")), 8)
         self.assertFalse(at.error)
 
-    def test_overview_filters(self):
+    def test_insights_filters(self):
         at = self.open()
         at.multiselect(key="crime_type").select("THEFT").run()
         self.assertEqual(metric(at, "Crimes"), "105")
@@ -52,44 +49,20 @@ class Pages(unittest.TestCase):
         self.assertFalse(at.metric)               # stops before the KPIs
         self.assertFalse(at.error)
 
-    # ---- Insights ------------------------------------------------------------
     def test_insights_sections(self):
-        at = self.open("app_pages/insights.py")
-        self.assertEqual(len(at.get("echarts_chart")), 8)
+        at = self.open()
         for section, charts in (("Statistical insights", 3), ("SQL views", 2)):
             at.get_by_key("section").set_value(section).run()
             self.assertFalse(at.exception)
             self.assertEqual(len(at.get("echarts_chart")), charts, section)
 
-    # ---- Communities ---------------------------------------------------------
-    def test_communities_directory(self):
-        at = self.open("app_pages/communities.py")
-        self.assertEqual(len(at.dataframe[0].value), 77)
-        self.assertEqual(metric(at, "Areas with crimes"), "70 of 77")
-
-    def test_community_detail(self):
-        at = self.open("app_pages/communities.py", area="Austin")
-        self.assertEqual(metric(at, "Crimes"), "34")
-        self.assertEqual(at.header[0].value, "Austin")
-        self.assertEqual(len(at.get("echarts_chart")), 2)
-        at.button(key="back_to_directory").click().run()
-        self.assertEqual(len(at.dataframe[0].value), 77)
-
-    def test_community_without_crimes(self):
-        at = self.open("app_pages/communities.py", area="Beverly")
-        self.assertIn("No crimes in Beverly", at.info[0].value)
-
-    # ---- Data admin / System -------------------------------------------------
+    # ---- Data admin ----------------------------------------------------------
     def test_admin(self):
         at = self.open("app_pages/admin.py")
         self.assertEqual(len(at.dataframe[0].value), 77)
         at.get_by_key("table").set_value("Police districts / stations").run()
         self.assertFalse(at.exception)
         self.assertEqual(len(at.dataframe[0].value), 22)
-
-    def test_system(self):
-        at = self.open("app_pages/system.py")
-        self.assertFalse(at.error)
 
 
 if __name__ == "__main__":

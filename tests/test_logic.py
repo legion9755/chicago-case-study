@@ -10,7 +10,7 @@ import zipfile
 
 import _support  # noqa: F401  (database copy + backend + environment)
 from lib.api import api, error_message, is_no_match
-from lib.charts import CHARTS, LIGHT, crime_mix, crimes_per_year, query_for, zip_all
+from lib.charts import CHARTS, LIGHT, crimes_per_year, query_for, zip_all
 from lib.export import FIGURES, render_png
 from lib.records import changed_fields, explain
 
@@ -51,12 +51,6 @@ class ChartBuilders(unittest.TestCase):
         _, r = api("GET", "/analytics/crimes-by-year")
         option, _ = crimes_per_year(r, LIGHT)
         self.assertEqual([s["name"] for s in option["series"]], ["Incomplete year"])   # no year is complete
-
-    def test_crime_mix_adds_up(self):
-        _, cats = api("GET", "/analytics/categories", params={"top": 5})
-        _, d = crime_mix(cats, LIGHT, 498)
-        self.assertEqual(d["crimes"].sum(), 498)
-        self.assertEqual(d.iloc[-1]["primary_type"], "Other")
 
 
 class Export(unittest.TestCase):

@@ -29,17 +29,20 @@ class Palette:
     muted: str              # de-emphasised bars (incomplete year)
     sequential: list[str]   # 0 → max
     diverging: list[str]    # -1 → 0 → +1
+    background: str         # page background, used to mask lines behind labels
 
 
 LIGHT = Palette(
     highlight="#C2261C", muted="#9DC3E6",
     sequential=["#F0F6FB", "#BCD6EE", "#66A1D3", "#2E6BA8", "#1F4E79", "#0F2840"],
     diverging=["#2E6BA8", "#93BDE2", "#F4F6F9", "#F2A48F", "#C2261C"],
+    background="#FFFFFF",
 )
 DARK = Palette(
     highlight="#F87171", muted="#3B5A78",
     sequential=["#17212F", "#1F4E79", "#2E6BA8", "#4285C2", "#93BDE2", "#F0F6FB"],
     diverging=["#5B9BD5", "#2C4A66", "#17212F", "#7A3A36", "#F87171"],
+    background="#0E1520",
 )
 
 
@@ -128,10 +131,17 @@ def arrest_by_category(r: dict, p: Palette) -> tuple[Option | None, pd.DataFrame
     d["primary_type"] = d["primary_type"].str.title()
     option = _hbar(
         d, "primary_type", "arrest_rate_pct", "{@arrest_rate_pct}%", "Arrest rate (%)", ["crimes", "arrests"],
-        markLine={"symbol": "none", "lineStyle": {"color": p.highlight, "type": "dashed"},
-                  "label": {"formatter": "overall {c}%", "color": p.highlight},
+        markLine={"symbol": "none", "silent": True, "z": 1,
+                  "lineStyle": {"color": p.highlight, "type": "dashed", "width": 1.5},
+                  # y-axis is inverted, so "start" is the top edge: keeps the label off the x-axis ticks
+                  "label": {"formatter": "overall {c}%", "color": p.highlight, "position": "start",
+                            "fontWeight": 600, "backgroundColor": p.background,
+                            "padding": [2, 6], "borderRadius": 4},
                   "data": [{"xAxis": r["overall_pct"]}]},
     )
+    # outline the value labels in the background colour so the dashed line passes behind them
+    option["series"][0]["label"].update(textBorderColor=p.background, textBorderWidth=3)
+    option["grid"]["top"] = 40
     option["xAxis"]["max"] = 100
     return option, d
 
@@ -210,31 +220,6 @@ def communities_rate(r: dict, p: Palette) -> tuple[Option, pd.DataFrame]:
     d = pd.DataFrame(r["by_rate"])[["community_name", "per_1000", "crimes", "population"]]
     return _hbar(d, "community_name", "per_1000", "{@per_1000}", "Crimes per 1,000 residents",
                  ["crimes", "population"]), d
-
-
-def crime_mix(r: dict, p: Palette, total: int) -> tuple[Option, pd.DataFrame]:
-    """Donut of the top categories plus "Other" (Overview page).
-
-    `r` is a /categories response; `total` is the number of crimes under the same filters.
-    """
-    d = pd.DataFrame(r["data"])[["primary_type", "crimes", "percent"]]
-    d["primary_type"] = d["primary_type"].str.title()
-    other = int(total - d["crimes"].sum())
-    if other > 0:
-        d = pd.concat([d, pd.DataFrame([{"primary_type": "Other", "crimes": other,
-                                         "percent": round(other / total * 100, 2)}])], ignore_index=True)
-    option = {
-        "dataset": {"source": d},
-        "tooltip": {"trigger": "item"},
-        "legend": {"orient": "vertical", "right": 0, "top": "middle"},
-        "series": [{
-            "type": "pie", "name": "Crimes", "radius": ["48%", "74%"], "center": ["34%", "50%"],
-            "avoidLabelOverlap": True, "itemStyle": {"borderWidth": 2, "borderColor": "transparent"},
-            "label": {"show": True, "formatter": "{@percent}%"},
-            "encode": {"itemName": "primary_type", "value": "crimes", "tooltip": ["crimes", "percent"]},
-        }],
-    }
-    return option, d
 
 
 # ---- Use Case 3 ------------------------------------------------------------

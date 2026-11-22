@@ -304,69 +304,6 @@ def correlation():
                     "dropped_constant": constant, "insight": insight})
 
 
-@analytics_bp.get("/incidents")
-def incidents():
-    """Individual crimes (newest first) with coordinates, for the map and the incident table.
-
-    ?limit= caps the rows returned (default 5000, max 50000); `total` is the full match count.
-    """
-    df = crimes_df(); require_rows(df)
-    limit = max(1, min(request.args.get("limit", 5000, type=int), 50000))
-    cols = ["case_number", "date", "primary_type", "description", "block", "location_desc", "arrest",
-            "domestic", "community_code", "community_name", "district_code", "ward_no", "beat_num",
-            "latitude", "longitude"]
-    out = df.sort_values("date", ascending=False)[cols].head(limit).copy()
-    out["primary_type"] = out["primary_type"].str.title()
-    out["description"] = out["description"].str.title()
-    mapped = int(df[["latitude", "longitude"]].notna().all(axis=1).sum())
-    insight = f"{len(df):,} incidents match the filters; {mapped:,} have coordinates and are on the map."
-    if mapped < len(df):
-        insight += f" {len(df) - mapped:,} have no location in the source data."
-    return jsonify({"total": int(len(df)), "returned": int(len(out)), "mapped": mapped,
-                    "data": records(out), "insight": insight})
-
-
-@analytics_bp.get("/communities")
-def communities_overview():
-    """Every community area (also those with no matching crimes) with counts, rates, ranks and its
-    most common crime type, plus city-wide reference values. Never 404: empty filters give zeros."""
-    df = crimes_df()
-    with engine.connect() as conn:
-        allc = pd.read_sql(text("SELECT community_code, community_name, population FROM city_community"), conn)
-    allc["community_name"] = allc["community_name"].str.title()
-    g = df.dropna(subset=["community_code"]).groupby("community_code")
-    stats = g.agg(crimes=("case_number", "size"), arrests=("arrest", "sum"), domestic=("domestic", "sum"),
-                  latitude=("latitude", "mean"), longitude=("longitude", "mean"))
-    stats["top_crime_type"] = g["primary_type"].agg(lambda s: s.value_counts().idxmax().title())
-    out = allc.merge(stats.reset_index(), on="community_code", how="left")
-    for col in ("crimes", "arrests", "domestic"):
-        out[col] = out[col].fillna(0).astype(int)
-    has = out["crimes"] > 0
-    out["arrest_rate_pct"] = (out["arrests"] / out["crimes"] * 100).round(1).where(has)
-    out["domestic_pct"] = (out["domestic"] / out["crimes"] * 100).round(1).where(has)
-    out["per_1000"] = (out["crimes"] / out["population"] * 1000).round(3)
-    out["rank_crimes"] = out["crimes"].rank(ascending=False, method="min").astype(int)
-    out["rank_per_1000"] = out["per_1000"].rank(ascending=False, method="min")
-    out = out.sort_values(["crimes", "community_name"], ascending=[False, True])
-
-    total, pop = int(out["crimes"].sum()), float(out["population"].sum())
-    city = {
-        "areas": int(len(out)), "areas_with_crimes": int(has.sum()), "crimes": total,
-        "per_1000": round(total / pop * 1000, 3) if pop else None,
-        "arrest_rate_pct": round(float(out["arrests"].sum()) / total * 100, 1) if total else None,
-        "domestic_pct": round(float(out["domestic"].sum()) / total * 100, 1) if total else None,
-        "median_crimes": float(out["crimes"].median()),
-    }
-    if total:
-        top, rate = out.iloc[0], out.dropna(subset=["per_1000"]).sort_values("per_1000", ascending=False).iloc[0]
-        insight = (f"{city['areas_with_crimes']} of {city['areas']} community areas have crimes. "
-                   f"{top['community_name']} has the most ({int(top['crimes'])}); per resident the highest is "
-                   f"{rate['community_name']} ({rate['per_1000']:g} per 1,000 vs {city['per_1000']:g} city-wide).")
-    else:
-        insight = "No crimes match the selected filters in any community area."
-    return jsonify({"data": records(out), "city": city, "insight": insight})
-
-
 @analytics_bp.get("/views/<name>")
 def read_view(name):
     if name not in VIEWS:
@@ -383,9 +320,3 @@ def read_view(name):
                    f"account for {top5['pct_of_total'].sum():.2f}% of all crimes.")
     return jsonify({"view": name, "data": records(df), "insight": insight})
 
-
-@analytics_bp.get("/data-quality")
-def data_quality():
-    with engine.connect() as conn:
-        df = pd.read_sql(text("SELECT * FROM data_quality_log"), conn)
-    return jsonify({"data": records(df)})

@@ -7,6 +7,5 @@ matplotlib>=3.7,<3.13
 seaborn>=0.13
 # the frontend uses st.navigation, st.echarts_chart, bind="query-params", st.menu_button, st.skeleton …
 streamlit>=1.67
-pydeck>=0.9
 requests>=2.31
 pillow>=10.0
