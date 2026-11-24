@@ -235,5 +235,5 @@ def delete_item(resource, pk):
             s.rollback()
             n = s.scalar(select(func.count()).where(REFERENCED_BY[resource] == key))
             abort(409, description=f"Cannot delete {resource} '{pk}': it is referenced by {n} crime "
-                                   "record(s). Delete or re-assign those crimes first.")
+                                   f"{'record' if n == 1 else 'records'}. Delete or re-assign those crimes first.")
         return jsonify({"message": "deleted", "item": to_dict(obj)})

@@ -28,6 +28,8 @@ from matplotlib.figure import Figure                  # noqa: E402
 from matplotlib.patches import Rectangle              # noqa: E402
 from PIL import Image, ImageDraw, ImageFont           # noqa: E402
 
+from lib.api import pct                               # noqa: E402
+
 # Brand palette (matches .streamlit/config.toml, light mode).
 NAVY, BLUE, LIGHT_BLUE = "#1F4E79", "#2E86C1", "#9DC3E6"
 GREEN, RED, ORANGE, BROWN, VIOLET = "#15803D", "#C2261C", "#C2410C", "#843C0C", "#6D28D9"
@@ -66,7 +68,7 @@ def _top_categories(r: dict) -> Figure:
     d = pd.DataFrame(r["data"]).iloc[::-1]
     fig, ax = _fig()
     bars = ax.barh(d["primary_type"].str.title(), d["crimes"], color=BLUE)
-    ax.bar_label(bars, labels=[f" {c} ({p}%)" for c, p in zip(d["crimes"], d["percent"])], fontsize=8)
+    ax.bar_label(bars, labels=[f" {c} ({pct(p)})" for c, p in zip(d["crimes"], d["percent"])], fontsize=8)
     ax.set(title="Top 10 crime categories", xlabel="Crimes")
     ax.set_xlim(0, d["crimes"].max() * 1.3)
     return fig
@@ -78,7 +80,7 @@ def _arrest_by_category(r: dict) -> Figure:
     if not d.empty:
         d = d.iloc[::-1]
         ax.barh(d["primary_type"].str.title(), d["arrest_rate_pct"], color=GREEN)
-        ax.axvline(r["overall_pct"], color=RED, ls="--", label=f"overall {r['overall_pct']}%")
+        ax.axvline(r["overall_pct"], color=RED, ls="--", label=f"overall {pct(r['overall_pct'])}")
         ax.legend(loc="lower right")
     ax.set(title=f"Arrest rate by category (≥{r['min_n']} crimes)", xlabel="Arrest rate (%)")
     return fig
@@ -183,7 +185,7 @@ def _vw_category(r: dict) -> Figure:
     d = pd.DataFrame(r["data"]).head(5).iloc[::-1]
     fig, ax = _fig()
     bars = ax.barh(d["primary_type"].str.title(), d["pct_of_total"], color=NAVY)
-    ax.bar_label(bars, labels=[f" {p}% ({n})" for p, n in zip(d["pct_of_total"], d["total_crimes"])], fontsize=9)
+    ax.bar_label(bars, labels=[f" {pct(p)} ({n})" for p, n in zip(d["pct_of_total"], d["total_crimes"])], fontsize=9)
     ax.set(title="vw_crime_by_category — top 5 crime types", xlabel="% of all crimes")
     ax.set_xlim(0, d["pct_of_total"].max() * 1.35)
     return fig

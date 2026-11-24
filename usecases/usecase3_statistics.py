@@ -82,7 +82,7 @@ rep.insight(f"{len(outliers)} areas exceed the upper fence of {upper}: "
 rep.section("3", "Crime cross-correlation",
             "Use Pandas .corr() on numeric features (Year, Month, Arrest, etc.) and visualise the matrix with a heatmap.")
 num = pd.DataFrame({"year": df["year"], "month": df["month"], "hour": df["hour"],
-                    "day_of_week": df["date"].dt.dayofweek, "arrest": df["arrest"].astype(int),
+                    "day_of_week": df["date"].dt.day_of_week, "arrest": df["arrest"].astype(int),
                     "domestic": df["domestic"].astype(int), "district_code": df["district_code"],
                     "ward_no": df["ward_no"], "community_code": df["community_code"],
                     "latitude": df["latitude"], "longitude": df["longitude"]}).astype(float)

@@ -151,10 +151,13 @@ def arrest_by_year(r: dict, p: Palette) -> tuple[Option, pd.DataFrame]:
     d["year"] = d["year"].astype(str)
     option = {
         "dataset": {"source": d},
-        "grid": _grid(),
+        # extra room on the right for the last point's label ("24.29% · n=490") and at the top for the
+        # labels of points at 100%; the axis title sits beside the axis so it never meets a point label
+        "grid": _grid(left=34, right=72, top=40),
         "tooltip": {"trigger": "axis"},
         "xAxis": {"type": "category", "boundaryGap": False},
-        "yAxis": {"type": "value", "max": 100, "name": "Arrest rate (%)", "axisLabel": {"formatter": "{value}%"}},
+        "yAxis": {"type": "value", "max": 100, "name": "Arrest rate (%)", "nameLocation": "middle",
+                  "nameRotate": 90, "nameGap": 42, "axisLabel": {"formatter": "{value}%"}},
         "series": [{
             "type": "line", "name": "Arrest rate (%)", "symbolSize": 8, "lineStyle": {"width": 3},
             "encode": {"x": "year", "y": "arrest_rate_pct", "tooltip": ["arrest_rate_pct", "crimes", "arrests"]},

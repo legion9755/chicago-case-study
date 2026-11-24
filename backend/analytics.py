@@ -25,6 +25,15 @@ VIEWS = {"vw_crime_yearly": "year", "vw_crime_by_category": "total_crimes DESC"}
 # ---------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------
+def pct(value, decimals=2):
+    """One percent format for every insight: rounded, no trailing zeros (100%, 88.24%, 24.9%, 0%)."""
+    return f"{round(float(value), decimals):g}%"
+
+
+def plural(n, singular, plural_):
+    return singular if n == 1 else plural_
+
+
 def records(df):
     """DataFrame -> JSON-safe list of dicts (NaN -> null, numpy types -> Python)."""
     return json.loads(df.to_json(orient="records", date_format="iso"))
@@ -115,9 +124,9 @@ def summary():
     }
     snapshot = bool(data["top_year_share_pct"] > 50 or data["top2_dates_share_pct"] > 50)
     insight = (f"{data['total_crimes']:,} crimes across {data['crime_types']} crime types; "
-               f"{data['arrest_rate_pct']}% led to an arrest and {data['domestic_pct']}% were domestic.")
+               f"{pct(data['arrest_rate_pct'])} led to an arrest and {pct(data['domestic_pct'])} were domestic.")
     if snapshot:
-        insight += (f" Note: {data['top2_dates_share_pct']}% of these crimes fall on just two dates, so the "
+        insight += (f" Note: {pct(data['top2_dates_share_pct'], 1)} of these crimes fall on just two dates, so the "
                     "extract is a snapshot of recently updated records, not a full history.")
     return jsonify({"data": data, "insight": insight, "is_snapshot": snapshot})
 
@@ -135,8 +144,9 @@ def crimes_by_year():
                    f"by about {abs(slope):,.0f} crimes per year.")
     else:
         top = yearly.loc[yearly["crimes"].idxmax()]
-        complete = "no year has all 12 months" if len(full) == 0 else f"only {len(full)} year(s) are complete"
-        insight = (f"No reliable trend: {int(top['year'])} holds {share:.1f}% of all crimes and {complete}. "
+        complete = ("no year has all 12 months" if len(full) == 0
+                    else f"only {len(full)} {plural(len(full), 'year is', 'years are')} complete")
+        insight = (f"No reliable trend: {int(top['year'])} holds {pct(share, 1)} of all crimes and {complete}. "
                    "Earlier years contain only late-reported crimes, so the apparent rise reflects how the "
                    "data was extracted, not crime levels.")
     return jsonify({"data": records(yearly), "insight": insight})
@@ -150,10 +160,10 @@ def categories():
     out = pd.DataFrame({"primary_type": vc.index, "crimes": vc.values,
                         "percent": (vc.values / len(df) * 100).round(2)}).head(top)
     insight = (f"{out.iloc[0]['primary_type'].title()} is the most frequent crime "
-               f"({out.iloc[0]['crimes']:,}, {out.iloc[0]['percent']}%)")
+               f"({out.iloc[0]['crimes']:,}, {pct(out.iloc[0]['percent'])})")
     if len(out) > 1:
-        insight += f", followed by {out.iloc[1]['primary_type'].title()} ({out.iloc[1]['percent']}%)"
-    insight += f". The top {len(out)} categories make up {out['percent'].sum():.1f}% of all crimes."
+        insight += f", followed by {out.iloc[1]['primary_type'].title()} ({pct(out.iloc[1]['percent'])})"
+    insight += f". The top {len(out)} categories make up {pct(out['percent'].sum(), 1)} of all crimes."
     return jsonify({"data": records(out), "insight": insight, "unique_crime_types": int(vc.size)})
 
 
@@ -168,10 +178,10 @@ def arrest_by_category():
     overall = round(float(df["arrest"].mean()) * 100, 2)
     if out.empty:
         return jsonify({"data": [], "overall_pct": overall, "min_n": min_n,
-                        "insight": f"Overall arrest rate {overall}%; no category has ≥{min_n} crimes."})
+                        "insight": f"Overall arrest rate {pct(overall)}; no category has ≥{min_n} crimes."})
     hi, lo = out.iloc[0], out.iloc[-1]
-    insight = (f"Overall arrest rate is {overall}%. It ranges from {hi['arrest_rate_pct']}% for "
-               f"{hi['primary_type'].title()} to {lo['arrest_rate_pct']}% for {lo['primary_type'].title()}: "
+    insight = (f"Overall arrest rate is {pct(overall)}. It ranges from {pct(hi['arrest_rate_pct'])} for "
+               f"{hi['primary_type'].title()} to {pct(lo['arrest_rate_pct'])} for {lo['primary_type'].title()}: "
                "offences discovered by police (e.g. narcotics) almost always end in arrest, "
                "reported property crimes rarely do.")
     return jsonify({"data": records(out), "overall_pct": overall, "min_n": min_n, "insight": insight})
@@ -189,7 +199,10 @@ def arrest_by_year():
                    f"{'fairly consistent' if rng < 3 else 'NOT consistent'}.")
     else:
         small = out[out["crimes"] < 30]
-        insight = (f"Consistency cannot be judged: only {len(reliable)} year(s) have ≥30 crimes. "
+        n = len(reliable)
+        enough = ("no year has ≥30 crimes" if n == 0
+                  else f"only {n} {plural(n, 'year has', 'years have')} ≥30 crimes")
+        insight = (f"Consistency cannot be judged: {enough}. "
                    f"The other years have {small['crimes'].min() if len(small) else 0}–"
                    f"{small['crimes'].max() if len(small) else 0} crimes each, so their rates swing "
                    "between 0% and 100% by chance.")
@@ -205,7 +218,7 @@ def heatmap():
     m, d = np.unravel_index(pv.values.argmax(), pv.shape)
     share = pv.values.max() / pv.values.sum() * 100
     insight = (f"Busiest cell: {MONTHS[m]} / {DAY_ORDER[d]} with {pv.values.max():,} crimes "
-               f"({share:.0f}% of the total). Busiest weekday overall: {pv.sum().idxmax()}.")
+               f"({pct(share, 0)} of the total). Busiest weekday overall: {pv.sum().idxmax()}.")
     if share > 30:
         insight += " One cell dominating means the heatmap reflects the extract dates, not a weekly pattern."
     return jsonify({"months": MONTHS, "days": DAY_ORDER, "values": pv.values.tolist(), "insight": insight})
@@ -220,7 +233,7 @@ def crimes_by_month():
                         "crimes_per_day": (counts / days).round(2).fillna(0).values})
     top = out.loc[out["crimes"].idxmax()]
     share = top["crimes"] / out["crimes"].sum() * 100
-    insight = f"{top['month']} has the most crimes ({top['crimes']:,}, {share:.1f}%)."
+    insight = f"{top['month']} has the most crimes ({top['crimes']:,}, {pct(share, 1)})."
     if share > 40:
         insight += " This reflects when the extract was taken, not seasonality."
     return jsonify({"data": records(out), "insight": insight})
@@ -313,10 +326,10 @@ def read_view(name):
     if name == "vw_crime_yearly":
         top = df.loc[df["total_crimes"].idxmax()]
         insight = (f"From vw_crime_yearly: {int(top['year'])} has {int(top['total_crimes'])} crimes "
-                   f"with an arrest rate of {top['arrest_rate_pct']}%.")
+                   f"with an arrest rate of {pct(top['arrest_rate_pct'])}.")
     else:
         top5 = df.head(5)
         insight = (f"From vw_crime_by_category: the top 5 types ({', '.join(top5['primary_type'].str.title())}) "
-                   f"account for {top5['pct_of_total'].sum():.2f}% of all crimes.")
+                   f"account for {pct(top5['pct_of_total'].sum())} of all crimes.")
     return jsonify({"view": name, "data": records(df), "insight": insight})
 

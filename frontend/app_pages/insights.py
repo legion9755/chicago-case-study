@@ -10,7 +10,7 @@ from functools import partial
 
 import streamlit as st
 
-from lib.api import API_URL
+from lib.api import API_URL, pct
 from lib.cards import chart_card
 from lib.charts import CHARTS, SECTIONS, zip_all
 from lib.filters import render_filters, require_summary
@@ -39,8 +39,8 @@ caption_slot.caption(f"{s['date_min']} → {s['date_max']} · served by the Flas
 with st.grid(6, gap="small", min_column_width=140):
     st.metric("Crimes", f"{s['total_crimes']:,}", border=True)
     st.metric("Arrests", f"{s['arrests']:,}", border=True)
-    st.metric("Arrest rate", f"{s['arrest_rate_pct']}%", border=True)
-    st.metric("Domestic", f"{s['domestic_pct']}%", border=True)
+    st.metric("Arrest rate", pct(s["arrest_rate_pct"]), border=True)
+    st.metric("Domestic", pct(s["domestic_pct"]), border=True)
     st.metric("Crime types", s["crime_types"], border=True)
     st.metric("Community areas", s["communities"], border=True)
 

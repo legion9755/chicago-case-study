@@ -93,9 +93,15 @@ sns.heatmap(pivot, annot=True, fmt="d", cmap="YlOrRd", linewidths=.5, ax=ax, cba
 ax.set(title="Crime frequency: Month vs Day of Week", xlabel="", ylabel="")
 rep.figure(fig, "uc2_4_heatmap_month_day")
 cell = pivot.stack().idxmax()
+in_cell = df[(df["month"] == MONTHS.index(cell[0]) + 1) & (df["day_of_week"] == cell[1])]
+by_date = in_cell["date"].dt.date.value_counts()
+top_day, top_day_n = by_date.index[0], int(by_date.iloc[0])
+print(f"\nBusiest cell {cell[0]} / {cell[1]}: {len(in_cell)} crimes, {top_day_n} of them on "
+      f"{top_day:%d %b %Y} and {len(in_cell) - top_day_n} on other dates")
 rep.insight(f"The busiest cell is {cell[0]} / {cell[1]} ({pivot.stack().max()} crimes = "
-            f"{pivot.stack().max() / pivot.values.sum() * 100:.0f}% of all). This is 4 May 2016, the date of "
-            "the extract, so the heatmap reflects when the data was pulled rather than a weekly pattern.")
+            f"{pivot.stack().max() / pivot.values.sum() * 100:.0f}% of all). Almost all of them ({top_day_n}) "
+            f"fall on {top_day.day} {top_day:%B %Y}, the date of the extract, so the heatmap reflects when the "
+            "data was pulled rather than a weekly pattern.")
 
 # -----------------------------------------------------------------------------
 # 5. Top community areas

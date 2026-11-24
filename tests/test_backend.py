@@ -47,6 +47,14 @@ class Analytics(unittest.TestCase):
         self.assertEqual(r.status_code, 404)
         self.assertIn("match", r.json["detail"])
 
+    def test_insight_wording(self):
+        r = client.get("/api/analytics/arrest-rate-by-year").json
+        self.assertIn("only 1 year has ≥30 crimes", r["insight"])
+        self.assertNotIn("(s)", r["insight"])
+        r = client.get("/api/analytics/arrest-rate-by-category").json
+        self.assertIn("from 100% for Narcotics to 0% for", r["insight"])
+        self.assertNotRegex(r["insight"], r"\d\.0%")             # one format: 100%, not 100.0%
+
     def test_unknown_view_is_404(self):
         self.assertEqual(client.get("/api/analytics/views/nope").status_code, 404)
 

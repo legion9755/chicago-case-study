@@ -5,10 +5,18 @@ usecases/common.py — shared helpers for the use-case scripts.
 * Report: prints each section to the console AND records its output, figures and insight
   into usecases/outputs/ucN_report.json (used to build the Word document)
 * load_crimes(): the cleaned fact table joined with its lookups, read from SQLite
+
+Every script accepts an optional --step to print a single step, e.g.
+    python usecases/usecase1_load_clean.py --step 2.2
+The whole script still runs (later steps depend on earlier ones) and the report JSON is still
+written in full; only the console output is limited to the chosen step(s). Without --step the
+script prints everything, as before.
 """
+import argparse
 import io
 import json
 import sys
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -41,7 +49,8 @@ class _Tee(io.TextIOBase):
         self.console, self.report = console, report
 
     def write(self, s):
-        self.console.write(s)
+        if self.report.visible():
+            self.console.write(s)
         if self.report.current is not None:
             self.report.current["output"] += s
         return len(s)
@@ -55,15 +64,24 @@ class Report:
     rep.insight(...), and rep.save() at the end."""
 
     def __init__(self, key, title):
+        parser = argparse.ArgumentParser(description=title)
+        parser.add_argument("--step", action="append", metavar="ID",
+                            help="print only this step (e.g. 2.2 or Q1); can be given more than once")
+        self.steps = parser.parse_args().step
         self.key, self.title, self.sections, self.current = key, title, [], None
         sys.stdout = _Tee(sys.__stdout__, self)
-        print("=" * 100 + f"\n{title}\n" + "=" * 100)
+        sys.__stdout__.write("=" * 100 + f"\n{title}\n" + "=" * 100 + "\n")
+
+    def visible(self):
+        """Show console output now? Always without --step; otherwise only inside a chosen step."""
+        return self.steps is None or (self.current is not None and self.current["id"] in self.steps)
 
     def section(self, sid, title, question=None):
         self.current = {"id": sid, "title": title, "question": question or title,
                         "output": "", "figures": [], "insight": None}
         self.sections.append(self.current)
-        sys.__stdout__.write("\n" + "-" * 100 + f"\n[{sid}] {title}\n" + "-" * 100 + "\n")
+        if self.visible():
+            sys.__stdout__.write("\n" + "-" * 100 + f"\n[{sid}] {title}\n" + "-" * 100 + "\n")
 
     def figure(self, fig, name):
         path = OUT_DIR / f"{name}.png"
@@ -74,7 +92,8 @@ class Report:
 
     def insight(self, text_):
         self.current["insight"] = text_
-        print(f"\nINSIGHT: {text_}")
+        # wrapped at word boundaries so a normal console window never breaks a word
+        print("\n" + textwrap.fill(text_, width=130, initial_indent="INSIGHT: ", subsequent_indent=" " * 9))
 
     def save(self):
         sys.stdout = sys.__stdout__
@@ -83,7 +102,10 @@ class Report:
         path = OUT_DIR / f"{self.key}_report.json"
         path.write_text(json.dumps({"key": self.key, "title": self.title, "sections": self.sections},
                                    indent=2, ensure_ascii=False))
-        print(f"\nSaved {len(self.sections)} sections to {path.relative_to(ROOT)}")
+        if self.steps is None:
+            print(f"\nSaved {len(self.sections)} sections to {path.relative_to(ROOT)}")
+        elif unknown := sorted(set(self.steps) - {s["id"] for s in self.sections}):
+            sys.exit(f"Unknown step(s) {unknown}. Steps: {[s['id'] for s in self.sections]}")
 
 
 def load_crimes():

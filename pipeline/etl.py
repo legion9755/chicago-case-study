@@ -48,10 +48,14 @@ class QualityLog:
     def __init__(self, verbose=True):
         self.rows, self.verbose = [], verbose
 
-    def add(self, check, rows_affected, action):
-        self.rows.append({"check": check, "rows_affected": int(rows_affected), "action": action})
+    def add(self, check, rows_affected, action, unit="rows", message=None):
+        """Record one finding. The console line reads "<check>: <n> <unit> -> <action>", unless a
+        plainer `message` is given for findings that are not a simple row count."""
+        n = int(rows_affected)
+        self.rows.append({"check": check, "rows_affected": n, "action": action})
         if self.verbose:
-            print(f"  [{check}] rows affected: {int(rows_affected):,} -> {action}")
+            unit = unit[:-1] if n == 1 and unit.endswith("s") else unit
+            print("  " + (message or f"{check}: {n:,} {unit} -> {action}"))
 
     def to_frame(self):
         return pd.DataFrame(self.rows)
@@ -137,7 +141,9 @@ def clean_dates(df, log):
     df["date_of_update"], _ = parse_mixed_dates(df["date_of_update"])
     formats = fmt.value_counts(dropna=False)
     dominant = formats.index[0]
-    log.add("Date formats found", len(formats), ", ".join(f"{k}: {v}" for k, v in formats.items()))
+    found = ", ".join(f"{k} on {v} rows" for k, v in formats.items())
+    log.add("Date formats found", len(formats), found,
+            message=f"Date formats found: {len(formats)} ({found})")
     log.add("Date in a different format from the rest", (fmt.notna() & (fmt != dominant)).sum(),
             "parsed with the matching format")
     log.add("Date has no time of day (date only)", (fmt == "%m/%d/%Y").sum(),
@@ -161,8 +167,10 @@ def standardize_fields(df, log):
     for col in ["block", "location_desc", "fbi_code", "iucr_code", "case_number"]:
         df[col] = standardize_text(df[col])
     df["iucr_code"] = df["iucr_code"].str.zfill(4)             # '486' -> '0486'
-    log.add("location_desc distinct values before/after standardising", before - df["location_desc"].nunique(),
-            f"{before} -> {df['location_desc'].nunique()} categories")
+    after = df["location_desc"].nunique()
+    log.add("location_desc categories merged by standardising", before - after, f"{before} -> {after} categories",
+            message=(f"location_desc: {before} categories before and after standardising" if before == after
+                     else f"location_desc: {before} categories before standardising, {after} after"))
     for col in ["arrest", "domestic"]:
         mapped = standardize_text(df[col]).map(BOOL_MAP)
         log.add(f"{col} missing / unrecognised", mapped.isna().sum(), "set to False")
@@ -252,7 +260,7 @@ def drop_sparse_columns(df, log, threshold=50):
     over = pct[pct > threshold].index.tolist()
     to_drop = [c for c in over if c not in PROTECTED]
     log.add(f"Columns with > {threshold}% missing", len(over),
-            f"dropped {to_drop}" if to_drop else "none dropped")
+            f"dropped {to_drop}" if to_drop else "none dropped", unit="columns")
     return df.drop(columns=to_drop)
 
 
@@ -307,7 +315,8 @@ def fix_orphans(df, dims, log):
     if missing:
         dims["iucr"] = pd.concat([dims["iucr"], pd.DataFrame(
             {"iucr_code": missing, "primary_type": "UNKNOWN", "description": "CODE NOT IN LOOKUP"})])
-    log.add("IUCR codes added as placeholders", len(missing), str(missing) if missing else "none needed")
+    log.add("IUCR codes added as placeholders", len(missing), str(missing) if missing else "none needed",
+            unit="codes")
     checks = {"beat_num": ("police_beat_info", "beat_num"), "district_code": ("district_ps_info", "district_code"),
               "ward_no": ("ward_office", "ward_no"), "community_code": ("city_community", "community_code")}
     for col, (table, key) in checks.items():
@@ -373,7 +382,8 @@ def load_to_database(df, dims):
 def run_pipeline(verbose=True):
     log = QualityLog(verbose)
     raw, repaired = read_crime_csv()
-    log.add("Line with unclosed quote (truncated export)", len(repaired), f"quote closed on lines {repaired}")
+    log.add("Lines with an unclosed quote (truncated export)", len(repaired), f"quote closed on lines {repaired}",
+            unit="lines")
     lk = read_all_lookups()
     df = remove_duplicates(raw, log)
     df = clean_dates(df, log)

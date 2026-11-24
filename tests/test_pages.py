@@ -41,7 +41,7 @@ class Pages(unittest.TestCase):
         at.get_by_key("crime_type").set_value([]).run()
         at.get_by_key("arrest").set_value("Yes").run()
         self.assertEqual(metric(at, "Crimes"), "124")
-        self.assertEqual(metric(at, "Arrest rate"), "100.0%")
+        self.assertEqual(metric(at, "Arrest rate"), "100%")
 
     def test_no_match_empty_state(self):
         at = self.open(crime_type="HOMICIDE", community="Loop")

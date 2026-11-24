@@ -13,6 +13,11 @@ import streamlit as st
 API_URL = os.getenv("API_URL", "http://127.0.0.1:5000/api").rstrip("/")
 
 
+def pct(value: float, decimals: int = 2) -> str:
+    """Same percent format as the backend insights and the charts: 100%, 88.24%, 24.9%, 0%."""
+    return f"{round(float(value), decimals):g}%"
+
+
 def api(method: str, path: str, params: dict | None = None, body: Any = None,
         timeout: float = 30) -> tuple[int, Any]:
     """Call the Flask API. Returns (status_code, json_body). Never raises.

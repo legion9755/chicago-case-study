@@ -24,7 +24,8 @@ log = etl.QualityLog(verbose=True)
 rep.section("1.1", "Load the dataset (CSV) into a Pandas DataFrame — first 10 rows",
             "Load the dataset (CSV) into a Pandas DataFrame. Inspect the first 10 rows.")
 raw, repaired = etl.read_crime_csv()
-log.add("Line with unclosed quote (truncated export)", len(repaired), f"quote closed on lines {repaired}")
+log.add("Lines with an unclosed quote (truncated export)", len(repaired), f"quote closed on lines {repaired}",
+        unit="lines")
 print("raw = pd.read_csv('chicago_crime_dataset.csv')   # with truncated-quote repair\n")
 print(raw.iloc[:10, :10].to_string())
 print()
@@ -82,7 +83,9 @@ print("\nExample (raw -> clean):")
 ex = pd.DataFrame({"raw_iucr_code": raw["iucr_code"].head(5).values, "clean_iucr_code": df["iucr_code"].head(5).values,
                    "raw_arrest": raw["arrest"].head(5).values, "clean_arrest": df["arrest"].head(5).values})
 print(ex.to_string(index=False))
-print(f"\nlocation_desc categories: {raw['location_desc'].nunique()} raw -> {df['location_desc'].nunique()} clean")
+n_raw, n_clean = raw["location_desc"].nunique(), df["location_desc"].nunique()
+extra = "  (the extra one is 'UNKNOWN', used for the 4 missing values in step 2.2)" if n_clean == n_raw + 1 else ""
+print(f"\nlocation_desc categories: {n_raw} in the raw file, {n_clean} after cleaning{extra}")
 df = etl.fix_coordinates(df, log)
 
 # -----------------------------------------------------------------------------
@@ -135,7 +138,8 @@ with engine.connect() as conn:
     for table_name, n in counts.items():
         in_db = conn.execute(text(f"SELECT COUNT(*) FROM {table_name}")).scalar()
         print(f"  {table_name:<18} loaded {n:>4}   rows in DB {in_db:>4}   {'OK' if n == in_db else 'MISMATCH'}")
-print("\nTables & views:", inspect(engine).get_table_names() + inspect(engine).get_view_names())
+print("\nTables:", inspect(engine).get_table_names())
+print("Views: ", inspect(engine).get_view_names())
 
 # -----------------------------------------------------------------------------
 # Questions
